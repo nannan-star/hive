@@ -165,7 +165,7 @@ hive/
 
 ### 4.1 模板月生成
 
-`ensureMonthTemplates(year, month)`：进入消费首页或待确认页时调用。
+`ensureMonthTemplates()`：进入消费首页或待确认页时调用；**`year`/`month` 始终取设备「今天」的自然月**，与消费首页所选展示年份无关（避免按 UI 年份误生成历史月模板笔）。
 
 对每个 `enabled && template_enabled` 的分类：若该自然月尚无 `source=template` 且 `status ∈ {pending, confirmed, skipped}` 的记录，则插入 1 条，字段为：
 
@@ -232,15 +232,14 @@ hive/
 | `/spend/categories` | 分类列表（启用中 / 含已停用） |
 | `/spend/categories/edit` | 新建分类 |
 | `/spend/categories/:id/edit` | 编辑分类（含排序数字、模板字段） |
-| `/spend/categories/:id` | 分类详情：同比文案 + 月柱 + 明细 |
+| `/spend/categories/:id` | 分类详情：同比文案 + 月柱 + 明细（日期、金额、备注、来源模板/手记） |
 | `/dream` | 梦想列表（可含已完成） |
 | `/dream/new` | 新建梦想罐 |
-| `/dream/:id` | 梦想详情（含改名称/目标、标记完成） |
-| `/dream/:id/edit` | 编辑罐子名称/目标（或与详情内联编辑，计划二选一，须具备同等能力） |
+| `/dream/:id` | 梦想详情（含改名称/目标、标记完成；存入改/删在详情内联） |
 | `/dream/:id/deposit` | 存一笔 |
 | `/settings` | 设置占位 |
 
-底栏：**消费 / 梦想**。设置从顶栏图标进入。
+底栏：**消费 / 梦想**。设置从顶栏图标进入。罐子名称/目标在详情页内联编辑（不单独强制 `/dream/:id/edit` 路由）。
 
 柱图：单系列 1–12 月；点柱可滚动到该月明细（第一期尽力而为）。
 
