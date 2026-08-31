@@ -167,7 +167,16 @@ hive/
 
 `ensureMonthTemplates(year, month)`：进入消费首页或待确认页时调用。
 
-对每个 `enabled && template_enabled` 的分类：若该自然月尚无 `source=template` 且 `status ∈ {pending, confirmed, skipped}` 的记录，则插入 1 条 `pending`；笔日期 = 当年当月 + `template_day`（上限 28，一般无需钳制月末）。
+对每个 `enabled && template_enabled` 的分类：若该自然月尚无 `source=template` 且 `status ∈ {pending, confirmed, skipped}` 的记录，则插入 1 条，字段为：
+
+| 字段 | 取值 |
+|---|---|
+| source | `template` |
+| status | `pending` |
+| amount_cents | 该分类 `template_default_amount` |
+| note | 该分类 `template_default_note`（可空） |
+| date | 当年当月 + `template_day`（`YYYY-MM-DD`；上限 28） |
+| category_id | 该分类 id |
 
 关闭模板或停用分类：已生成的本月 pending 仍可确认/跳过；下月不再生成。
 
@@ -177,6 +186,7 @@ hive/
 
 - `source = manual`
 - `status = confirmed`（**立即计入**年/月统计与同比，不经待确认）
+- `date` 默认**当天**，可改
 - 分类须为当前启用分类（从详情带入 `categoryId` 时可预填）
 
 ### 4.3 待确认操作
@@ -205,7 +215,7 @@ hive/
 ### 4.6 梦想
 
 - 已存 = 该罐 deposits 求和；无取出
-- 存入可删/改（纠错）
+- 存入可删/改（纠错）；存入 `date` 默认**当天**，可改
 - 详情可**编辑罐子名称与目标金额**（保存写回 `dream_jars`）
 - 「标记已完成」只改 `dream_jars.status = completed`，不写消费
 - 新建罐子：使用路由 `/dream/new`（表单页）
