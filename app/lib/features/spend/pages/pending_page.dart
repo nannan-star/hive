@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../data/providers.dart';
-import '../../../shared/dates.dart';
 import '../../../shared/money.dart';
+import '../../../shared/theme/hive_colors.dart';
+import '../../../shared/widgets/hive_widgets.dart';
 import '../providers/spend_providers.dart';
 import '../services/template_service.dart';
 
@@ -37,29 +38,45 @@ class _PendingPageState extends ConsumerState<PendingPage> {
     final catsAsync = ref.watch(_allCategoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('本月待确认')),
-      body: pendingAsync.when(
-        data: (entries) {
-          if (entries.isEmpty) {
-            return const Center(child: Text('本月没有待确认'));
-          }
-          final catMap = {
-            for (final c in catsAsync.valueOrNull ?? <Category>[]) c.id: c.name,
-          };
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: entries.length,
-            itemBuilder: (context, i) {
-              final e = entries[i];
-              return _PendingCard(
-                entry: e,
-                categoryName: catMap[e.categoryId] ?? e.categoryId,
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('错误: $err')),
+      backgroundColor: HiveColors.page,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const HiveBackHeader(title: '本月待确认'),
+            Expanded(
+              child: pendingAsync.when(
+                data: (entries) {
+                  if (entries.isEmpty) {
+                    return const HiveEmpty('本月没有待确认');
+                  }
+                  final catMap = {
+                    for (final c in catsAsync.valueOrNull ?? <Category>[])
+                      c.id: c.name,
+                  };
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    itemCount: entries.length + 1,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      if (i == 0) {
+                        return const HiveHint(
+                          '由月度模板自动生成各 1 条；确认后计入统计。同月同分类仍可再手记多笔。',
+                        );
+                      }
+                      final e = entries[i - 1];
+                      return _PendingCard(
+                        entry: e,
+                        categoryName: catMap[e.categoryId] ?? e.categoryId,
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => Center(child: Text('错误: $err')),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -77,23 +94,21 @@ class _PendingCard extends ConsumerStatefulWidget {
 
 class _PendingCardState extends ConsumerState<_PendingCard> {
   late final TextEditingController _amountCtrl;
-  late final TextEditingController _noteCtrl;
-  late DateTime _date;
 
   @override
   void initState() {
     super.initState();
+    final yuan = centsToYuan(widget.entry.amountCents);
     _amountCtrl = TextEditingController(
-      text: centsToYuan(widget.entry.amountCents).toString(),
+      text: yuan == yuan.roundToDouble()
+          ? yuan.round().toString()
+          : yuan.toStringAsFixed(2),
     );
-    _noteCtrl = TextEditingController(text: widget.entry.note ?? '');
-    _date = parseDateYmd(widget.entry.date);
   }
 
   @override
   void dispose() {
     _amountCtrl.dispose();
-    _noteCtrl.dispose();
     super.dispose();
   }
 
@@ -102,8 +117,8 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
     await dao.updateFields(
       id: widget.entry.id,
       amountCents: yuanToCents(num.parse(_amountCtrl.text.trim())),
-      date: formatDateYmd(_date),
-      note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
+      date: widget.entry.date,
+      note: widget.entry.note,
     );
   }
 
@@ -124,61 +139,108 @@ class _PendingCardState extends ConsumerState<_PendingCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.categoryName,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            TextField(
-              controller: _amountCtrl,
-              decoration: const InputDecoration(labelText: '金额（元）'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('日期'),
-              subtitle: Text(formatDateYmd(_date)),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (picked != null) setState(() => _date = picked);
-              },
-            ),
-            TextField(
-              controller: _noteCtrl,
-              decoration: const InputDecoration(labelText: '备注'),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton(
-                    onPressed: _confirm,
-                    child: const Text('确认'),
-                  ),
+    final source = widget.entry.source == 'template' ? '模板' : '手记';
+    return HiveCard(
+      radius: 16,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.categoryName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: HiveColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '$source · ${widget.entry.date}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HiveColors.dim,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
+              ),
+              const HiveBadge(label: '待确认', tone: HiveBadgeTone.pending),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            decoration: BoxDecoration(
+              color: HiveColors.fieldFill,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: HiveColors.border),
+            ),
+            child: Row(
+              children: [
+                const Text(
+                  '金额',
+                  style: TextStyle(fontSize: 13, color: HiveColors.dim),
+                ),
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: _skip,
-                    child: const Text('跳过本月'),
+                  child: TextField(
+                    controller: _amountCtrl,
+                    textAlign: TextAlign.right,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: HiveColors.ink,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      prefixText: '¥',
+                      prefixStyle: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: HiveColors.ink,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                    ),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _skip,
+                  child: const Text('跳过'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SizedBox(
+                  height: 46,
+                  child: FilledButton(
+                    onPressed: _confirm,
+                    child: const Text('确认入账'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

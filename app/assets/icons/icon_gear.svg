@@ -1,0 +1,14 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon-gear">
+<rect id="Rectangle" x="18.5" y="9.9" width="3.4" height="4.2" rx="0.6" transform="rotate(90 18.5 9.9)" fill="#1B1B1E"/>
+<rect id="Rectangle_2" x="16.0983" y="15.6983" width="3.4" height="4.2" rx="0.6" transform="rotate(135 16.0983 15.6983)" fill="#1B1B1E"/>
+<rect id="Rectangle_3" x="10.3" y="18.1" width="3.4" height="4.2" rx="0.6" transform="rotate(180 10.3 18.1)" fill="#1B1B1E"/>
+<rect id="Rectangle_4" x="4.50172" y="15.6983" width="3.4" height="4.2" rx="0.6" transform="rotate(-135 4.50172 15.6983)" fill="#1B1B1E"/>
+<rect id="Rectangle_5" x="2.1" y="9.9" width="3.4" height="4.2" rx="0.6" transform="rotate(-90 2.1 9.9)" fill="#1B1B1E"/>
+<rect id="Rectangle_6" x="4.50172" y="4.10172" width="3.4" height="4.2" rx="0.6" transform="rotate(-45 4.50172 4.10172)" fill="#1B1B1E"/>
+<rect id="Rectangle_7" x="10.3" y="1.7" width="3.4" height="4.2" rx="0.6" fill="#1B1B1E"/>
+<rect id="Rectangle_8" x="16.0983" y="4.10172" width="3.4" height="4.2" rx="0.6" transform="rotate(45 16.0983 4.10172)" fill="#1B1B1E"/>
+<circle id="Ellipse" cx="12" cy="12" r="6.5" fill="#1B1B1E"/>
+<circle id="Ellipse_2" cx="12" cy="12" r="2.5" fill="white"/>
+</g>
+</svg>

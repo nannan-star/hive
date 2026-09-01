@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../shared/dates.dart';
 import '../../../shared/money.dart';
+import '../../../shared/theme/hive_colors.dart';
+import '../../../shared/widgets/hive_widgets.dart';
 import '../providers/dream_providers.dart';
 
 class DreamDepositPage extends ConsumerStatefulWidget {
@@ -20,6 +22,19 @@ class _DreamDepositPageState extends ConsumerState<DreamDepositPage> {
   final _amountCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   DateTime _date = DateTime.now();
+  String _jarName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJar();
+  }
+
+  Future<void> _loadJar() async {
+    final jar = await ref.read(dreamDaoProvider).getJar(widget.jarId);
+    if (!mounted) return;
+    setState(() => _jarName = jar?.name ?? '');
+  }
 
   @override
   void dispose() {
@@ -39,48 +54,139 @@ class _DreamDepositPageState extends ConsumerState<DreamDepositPage> {
     if (mounted) context.pop();
   }
 
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('存一笔')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: HiveColors.page,
+      body: SafeArea(
+        child: Column(
           children: [
-            TextFormField(
-              controller: _amountCtrl,
-              decoration: const InputDecoration(labelText: '金额（元）'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) {
-                final n = num.tryParse(v ?? '');
-                if (n == null || n <= 0) return '请输入有效金额';
-                return null;
-              },
+            const HiveBackHeader(title: '存入梦想'),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  children: [
+                    const HiveFieldLabel('罐子'),
+                    _ReadBox(value: _jarName.isEmpty ? '…' : _jarName),
+                    const SizedBox(height: 16),
+                    const HiveFieldLabel('金额'),
+                    TextFormField(
+                      controller: _amountCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(prefixText: '¥'),
+                      validator: (v) {
+                        final n = num.tryParse(v ?? '');
+                        if (n == null || n <= 0) return '请输入有效金额';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const HiveFieldLabel('日期'),
+                    Material(
+                      color: HiveColors.card,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 13,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: HiveColors.border),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  formatDateYmd(_date),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: HiveColors.ink,
+                                  ),
+                                ),
+                              ),
+                              const Text(
+                                '⌄',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: HiveColors.dim,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const HiveFieldLabel('备注'),
+                    TextFormField(
+                      controller: _noteCtrl,
+                      minLines: 3,
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 16),
+                    HivePrimaryButton(label: '保存', onPressed: _save),
+                    HiveTextAction(
+                      label: '取消',
+                      onPressed: () => context.pop(),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('日期'),
-              subtitle: Text(formatDateYmd(_date)),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _date,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (picked != null) setState(() => _date = picked);
-              },
-            ),
-            TextFormField(
-              controller: _noteCtrl,
-              decoration: const InputDecoration(labelText: '备注（可选）'),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(onPressed: _save, child: const Text('保存')),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ReadBox extends StatelessWidget {
+  const _ReadBox({required this.value});
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      decoration: BoxDecoration(
+        color: HiveColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: HiveColors.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 15, color: HiveColors.ink),
+            ),
+          ),
+          const Text(
+            '⌄',
+            style: TextStyle(fontSize: 15, color: HiveColors.dim),
+          ),
+        ],
       ),
     );
   }

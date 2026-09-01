@@ -12,6 +12,8 @@ import 'features/spend/pages/category_detail_page.dart';
 import 'features/spend/pages/category_edit_page.dart';
 import 'features/spend/pages/pending_page.dart';
 import 'features/spend/pages/spend_home_page.dart';
+import 'shared/theme/hive_colors.dart';
+import 'shared/widgets/hive_widgets.dart';
 
 GoRouter createRouter() {
   return GoRouter(
@@ -19,7 +21,18 @@ GoRouter createRouter() {
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return _ScaffoldWithNavBar(navigationShell: navigationShell);
+          final path = state.uri.path;
+          final showNav = path == '/spend' || path == '/dream';
+          return Scaffold(
+            backgroundColor: HiveColors.page,
+            body: navigationShell,
+            bottomNavigationBar: showNav
+                ? HiveTabBar(
+                    index: navigationShell.currentIndex,
+                    onSelect: navigationShell.goBranch,
+                  )
+                : null,
+          );
         },
         branches: [
           StatefulShellBranch(
@@ -108,33 +121,4 @@ GoRouter createRouter() {
       ),
     ],
   );
-}
-
-class _ScaffoldWithNavBar extends StatelessWidget {
-  const _ScaffoldWithNavBar({required this.navigationShell});
-
-  final StatefulNavigationShell navigationShell;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: navigationShell.goBranch,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.payments_outlined),
-            selectedIcon: Icon(Icons.payments),
-            label: '消费',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.savings_outlined),
-            selectedIcon: Icon(Icons.savings),
-            label: '梦想',
-          ),
-        ],
-      ),
-    );
-  }
 }

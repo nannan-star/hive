@@ -1,6 +1,9 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 
 import '../../../data/db/app_database.dart';
+import '../../../shared/money.dart';
+import '../../../shared/theme/hive_colors.dart';
 
 class YoyResult {
   const YoyResult({
@@ -76,18 +79,53 @@ class SpendStatsService {
   Future<List<SpendEntry>> listConfirmedEntries(String categoryId, int year) {
     return db.spendEntriesDao.listConfirmedEntries(categoryId, year);
   }
+
+  Future<List<SpendEntry>> listYearEntries(String categoryId, int year) {
+    return db.spendEntriesDao.listYearEntries(categoryId, year);
+  }
+
+  Future<YoyResult> yearYoy(int year) async {
+    final thisYear = await yearTotal(year);
+    final lastYear = await yearTotal(year - 1);
+    final delta = thisYear - lastYear;
+    final percent = lastYear == 0 ? null : (delta / lastYear) * 100.0;
+    return YoyResult(
+      thisYear: thisYear,
+      lastYear: lastYear,
+      delta: delta,
+      percent: percent,
+    );
+  }
 }
 
-String formatYoyText(YoyResult r) {
-  final sign = r.delta >= 0 ? '多' : '少';
-  final absDelta = r.delta.abs();
-  final yuan = (absDelta / 100).toStringAsFixed(absDelta % 100 == 0 ? 0 : 2);
+Color yoyColor(YoyResult r) {
+  if (r.delta > 0) return HiveColors.danger;
+  if (r.delta < 0) return HiveColors.accent;
+  return HiveColors.dim;
+}
+
+String formatYoyText(YoyResult r, {int? vsYear}) {
+  final vs = vsYear != null ? ' $vsYear' : '去年';
   if (r.percent == null) {
     if (r.lastYear == 0 && r.thisYear > 0) {
-      return '较去年新增 ¥$yuan';
+      return '较$vs新增 ${formatYuan(r.thisYear)}';
     }
-    return '较去年持平';
+    return vsYear != null ? '与 $vsYear 持平' : '与去年持平';
   }
+  final sign = r.delta >= 0 ? '多' : '少';
   final pct = r.percent!.abs().toStringAsFixed(1);
-  return '较去年$sign ¥$yuan（${r.delta >= 0 ? '+' : '-'}$pct%）';
+  final prefix = vsYear != null ? '较 $vsYear ' : '较去年';
+  return '$prefix$sign ${formatYuan(r.delta.abs())}（${r.delta >= 0 ? '+' : '-'}$pct%）';
+}
+
+String formatYoyHeadline(YoyResult r) {
+  if (r.lastYear == 0 && r.thisYear == 0) {
+    return '尚无可对比的去年数据';
+  }
+  if (r.delta == 0) return '与去年同类持平';
+  if (r.lastYear == 0) {
+    return '较去年新增 ${formatYuan(r.thisYear)}';
+  }
+  final sign = r.delta > 0 ? '多' : '少';
+  return '较去年同类$sign ${formatYuan(r.delta.abs())}';
 }

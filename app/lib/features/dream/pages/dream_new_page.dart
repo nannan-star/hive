@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/money.dart';
+import '../../../shared/theme/hive_colors.dart';
+import '../../../shared/widgets/hive_widgets.dart';
 import '../providers/dream_providers.dart';
 
 class DreamNewPage extends ConsumerStatefulWidget {
@@ -36,31 +38,47 @@ class _DreamNewPageState extends ConsumerState<DreamNewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('新建梦想罐')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+      backgroundColor: HiveColors.page,
+      body: SafeArea(
+        child: Column(
           children: [
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: '名称'),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? '请输入名称' : null,
+            const HiveBackHeader(title: '新建罐子'),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  children: [
+                    const HiveFieldLabel('名称'),
+                    TextFormField(
+                      controller: _nameCtrl,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? '请输入名称' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    const HiveFieldLabel('目标金额'),
+                    TextFormField(
+                      controller: _targetCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(prefixText: '¥'),
+                      validator: (v) {
+                        final n = num.tryParse(v ?? '');
+                        if (n == null || n <= 0) return '请输入有效目标';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    HivePrimaryButton(label: '保存', onPressed: _save),
+                    HiveTextAction(
+                      label: '取消',
+                      onPressed: () => context.pop(),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            TextFormField(
-              controller: _targetCtrl,
-              decoration: const InputDecoration(labelText: '目标金额（元）'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) {
-                final n = num.tryParse(v ?? '');
-                if (n == null || n <= 0) return '请输入有效目标';
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
-            FilledButton(onPressed: _save, child: const Text('创建')),
           ],
         ),
       ),

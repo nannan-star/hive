@@ -101,6 +101,21 @@ class SpendEntriesDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  Future<List<SpendEntry>> listYearEntries(String categoryId, int year) {
+    return (select(spendEntries)
+          ..where(
+            (t) =>
+                t.categoryId.equals(categoryId) &
+                t.date.like('$year-%') &
+                (t.status.equals('confirmed') | t.status.equals('pending')),
+          )
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.date),
+            (t) => OrderingTerm.desc(t.createdAt),
+          ]))
+        .get();
+  }
+
   Future<SpendEntry?> getById(String id) {
     return (select(spendEntries)..where((t) => t.id.equals(id)))
         .getSingleOrNull();
