@@ -8,11 +8,14 @@ class HiveApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Hive',
-      debugShowCheckedModeBanner: false,
-      theme: HiveTheme.light,
-      routerConfig: createRouter(),
+    return AnnotatedRegion(
+      value: HiveTheme.systemUi,
+      child: MaterialApp.router(
+        title: 'Hive',
+        debugShowCheckedModeBanner: false,
+        theme: HiveTheme.light,
+        routerConfig: createRouter(),
+      ),
     );
   }
 }

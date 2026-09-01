@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#3D82F5</color>
+    <color name="hive_page">#F5F5F7</color>
+    <color name="hive_card">#FFFFFF</color>
 </resources>

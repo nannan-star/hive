@@ -647,16 +647,16 @@ class HiveJarIcon extends StatelessWidget {
 }
 
 class HiveGearIcon extends StatelessWidget {
-  const HiveGearIcon({super.key, this.size = 20});
+  const HiveGearIcon({super.key, this.size = 22});
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/icons/icon_gear.svg',
-      width: size,
-      height: size,
+    return Icon(
+      Icons.settings_outlined,
+      size: size,
+      color: HiveColors.ink,
     );
   }
 }

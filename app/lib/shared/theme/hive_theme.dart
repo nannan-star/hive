@@ -4,6 +4,17 @@ import 'package:flutter/services.dart';
 import 'hive_colors.dart';
 
 abstract final class HiveTheme {
+  /// Pages don't use [AppBar], so overlay style must be applied globally.
+  static const systemUi = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+    systemStatusBarContrastEnforced: false,
+    systemNavigationBarColor: HiveColors.card,
+    systemNavigationBarIconBrightness: Brightness.dark,
+    systemNavigationBarContrastEnforced: false,
+  );
+
   static ThemeData get light {
     const scheme = ColorScheme.light(
       primary: HiveColors.accent,
@@ -36,7 +47,7 @@ abstract final class HiveTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: systemUi,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
