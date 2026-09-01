@@ -80,14 +80,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           'hive-backup-${DateFormat('yyyyMMdd-HHmm').format(DateTime.now())}.json';
       final file = File(p.join((await getTemporaryDirectory()).path, name));
       await file.writeAsString(json);
-      final result = await SharePlus.instance.share(
+      await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'application/json')],
         ),
       );
-      if (result.status == ShareResultStatus.unavailable) {
-        _snack('导出失败，请重试');
-      }
     } catch (_) {
       _snack('导出失败，请重试');
     } finally {
@@ -96,14 +93,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _import() async {
-    final picked = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    if (picked == null) return;
-
     setState(() => _busy = true);
     try {
+      final picked = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+      if (picked == null) return;
+      if (!mounted) return;
+
       final bytes = await _readPickedBytes(picked);
       final String source;
       try {
@@ -143,6 +141,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       if (confirmed != true) return;
 
       await _backup.restore(payload);
+      if (!mounted) return;
       ref.read(backupRestoreEpochProvider.notifier).state++;
       _snack('已从备份恢复');
     } on BackupException catch (e) {
