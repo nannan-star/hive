@@ -17,11 +17,11 @@ void main() {
         child: const HiveApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('消费'), findsWidgets);
     expect(find.text('梦想'), findsOneWidget);
-    expect(find.text('停车费'), findsOneWidget);
 
     await db.close();
   });

@@ -21,3 +21,6 @@ final pendingEntriesProvider =
   final db = ref.watch(databaseProvider);
   return db.spendEntriesDao.watchPendingForMonth(ym.$1, ym.$2);
 });
+
+final selectedSpendYearProvider =
+    StateProvider<int>((ref) => DateTime.now().year);

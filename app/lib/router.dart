@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/dream/pages/dream_deposit_page.dart';
+import 'features/dream/pages/dream_detail_page.dart';
+import 'features/dream/pages/dream_home_page.dart';
+import 'features/dream/pages/dream_new_page.dart';
+import 'features/settings/pages/settings_page.dart';
 import 'features/spend/pages/add_spend_page.dart';
 import 'features/spend/pages/categories_page.dart';
+import 'features/spend/pages/category_detail_page.dart';
 import 'features/spend/pages/category_edit_page.dart';
 import 'features/spend/pages/pending_page.dart';
 import 'features/spend/pages/spend_home_page.dart';
@@ -47,6 +53,19 @@ GoRouter createRouter() {
                           categoryId: state.pathParameters['id'],
                         ),
                       ),
+                      GoRoute(
+                        path: ':id',
+                        builder: (context, state) {
+                          final year = int.tryParse(
+                                state.uri.queryParameters['year'] ?? '',
+                              ) ??
+                              DateTime.now().year;
+                          return CategoryDetailPage(
+                            categoryId: state.pathParameters['id']!,
+                            year: year,
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -57,9 +76,27 @@ GoRouter createRouter() {
             routes: [
               GoRoute(
                 path: '/dream',
-                builder: (context, state) => const _PlaceholderPage(
-                  title: '梦想',
-                ),
+                builder: (context, state) => const DreamHomePage(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (context, state) => const DreamNewPage(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => DreamDetailPage(
+                      jarId: state.pathParameters['id']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'deposit',
+                        builder: (context, state) => DreamDepositPage(
+                          jarId: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -67,9 +104,7 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const _PlaceholderPage(
-          title: '设置',
-        ),
+        builder: (context, state) => const SettingsPage(),
       ),
     ],
   );
@@ -100,29 +135,6 @@ class _ScaffoldWithNavBar extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          if (title != '设置')
-            IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: () => context.push('/settings'),
-            ),
-        ],
-      ),
-      body: const Placeholder(),
     );
   }
 }
