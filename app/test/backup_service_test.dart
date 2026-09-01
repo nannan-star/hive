@@ -70,31 +70,49 @@ void main() {
         );
   }
 
+  List<T> sortedById<T>(List<T> rows, String Function(T) idOf) {
+    return [...rows]..sort((a, b) => idOf(a).compareTo(idOf(b)));
+  }
+
   test('export then restore into empty db keeps all fields', () async {
     await seedSample(db);
+
+    final sourceCats = await db.select(db.categories).get();
+    final sourceSpends = await db.select(db.spendEntries).get();
+    final sourceJars = await db.select(db.dreamJars).get();
+    final sourceDeps = await db.select(db.dreamDeposits).get();
+
     final json = await backup.exportJson();
     final payload = backup.parse(json);
+    final decoded = jsonDecode(json) as Map<String, dynamic>;
+
+    expect(decoded['app'], 'hive');
+    expect(decoded['formatVersion'], 1);
+    expect(decoded['schemaVersion'], 1);
+    expect(decoded['exportedAt'], isA<String>());
+    expect(decoded['exportedAt'], endsWith('Z'));
+    expect(decoded['categories'][0]['note'], isNull);
 
     final empty = AppDatabase(NativeDatabase.memory());
     addTearDown(empty.close);
     await BackupService(empty).restore(payload);
 
-    final cats = await empty.select(empty.categories).get();
-    final spends = await empty.select(empty.spendEntries).get();
-    final jars = await empty.select(empty.dreamJars).get();
-    final deps = await empty.select(empty.dreamDeposits).get();
-
-    expect(cats, hasLength(1));
-    expect(cats.single.id, 'cat-1');
-    expect(cats.single.name, '停车费');
-    expect(cats.single.templateDefaultAmount, 50000);
-    expect(spends.single.amountCents, 50000);
-    expect(spends.single.date, '2026-09-01');
-    expect(jars.single.id, 'jar-1');
-    expect(deps.single.jarId, 'jar-1');
-    expect(jsonDecode(json)['app'], 'hive');
-    expect(jsonDecode(json)['schemaVersion'], 1);
-    expect(jsonDecode(json)['categories'][0]['note'], isNull);
+    expect(
+      sortedById(await empty.select(empty.categories).get(), (r) => r.id),
+      sortedById(sourceCats, (r) => r.id),
+    );
+    expect(
+      sortedById(await empty.select(empty.spendEntries).get(), (r) => r.id),
+      sortedById(sourceSpends, (r) => r.id),
+    );
+    expect(
+      sortedById(await empty.select(empty.dreamJars).get(), (r) => r.id),
+      sortedById(sourceJars, (r) => r.id),
+    );
+    expect(
+      sortedById(await empty.select(empty.dreamDeposits).get(), (r) => r.id),
+      sortedById(sourceDeps, (r) => r.id),
+    );
   });
 
   test('restore replaces existing rows', () async {

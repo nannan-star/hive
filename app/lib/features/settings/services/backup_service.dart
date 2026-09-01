@@ -47,19 +47,21 @@ class BackupService {
   static const formatVersion = 1;
 
   Future<String> exportJson() async {
-    final categories = await db.select(db.categories).get();
-    final spendEntries = await db.select(db.spendEntries).get();
-    final dreamJars = await db.select(db.dreamJars).get();
-    final dreamDeposits = await db.select(db.dreamDeposits).get();
-    return jsonEncode({
-      'app': 'hive',
-      'formatVersion': formatVersion,
-      'schemaVersion': db.schemaVersion,
-      'exportedAt': DateTime.now().toUtc().toIso8601String(),
-      'categories': categories.map((r) => r.toJson()).toList(),
-      'spendEntries': spendEntries.map((r) => r.toJson()).toList(),
-      'dreamJars': dreamJars.map((r) => r.toJson()).toList(),
-      'dreamDeposits': dreamDeposits.map((r) => r.toJson()).toList(),
+    return db.transaction(() async {
+      final categories = await db.select(db.categories).get();
+      final spendEntries = await db.select(db.spendEntries).get();
+      final dreamJars = await db.select(db.dreamJars).get();
+      final dreamDeposits = await db.select(db.dreamDeposits).get();
+      return jsonEncode({
+        'app': 'hive',
+        'formatVersion': formatVersion,
+        'schemaVersion': db.schemaVersion,
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
+        'categories': categories.map((r) => r.toJson()).toList(),
+        'spendEntries': spendEntries.map((r) => r.toJson()).toList(),
+        'dreamJars': dreamJars.map((r) => r.toJson()).toList(),
+        'dreamDeposits': dreamDeposits.map((r) => r.toJson()).toList(),
+      });
     });
   }
 
