@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#F3E9D8" />
+  <title>Hive · 家用手账原型</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* finesse · register=h5 · morph=A-app-shell · A=warm-stone+forest · B=Literata/NotoSansSC · C=phone-tab-shell · D=CSS-press+fade · E=paper-journal-grain · SOUL=7 SPECTACLE=2 DENSITY=5 */
+    :root {
+      --page: #f1e6d4;
+      --paper: #f1e6d4;
+      --paper-deep: #e5d6c0;
+      --sheet: #fff8ee;
+      --panel-2: #f7ecdc;
+      --ink: #241c16;
+      --ink-soft: #6f5f50;
+      --ink-3: #8a7866;
+      --line: rgba(36, 28, 22, 0.08);
+      --sage: #2f6b4f;
+      --sage-soft: rgba(47, 107, 79, 0.12);
+      --blush: #e8c4b0;
+      --warn: #a85a38;
+      --ok: #2f6b4f;
+      --up: #2c7a8c;
+      --down: #a85a38;
+      --on-accent: #f7faf7;
+      --glow: rgba(47, 107, 79, 0.28);
+      --shadow: 0 1px 2px rgba(60, 40, 24, 0.04), 0 10px 28px -16px rgba(60, 40, 24, 0.22);
+      --shadow-lg: 0 28px 60px -28px rgba(55, 38, 22, 0.45);
+      --radius: 18px;
+      --r-sm: 12px;
+      --font-display: "Literata", "Noto Serif SC", serif;
+      --font-body: "Noto Sans SC", sans-serif;
+      --ease: cubic-bezier(.22, .9, .28, 1);
+      --tab-h: 72px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      overflow-x: clip;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 14px;
+      color: var(--ink);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(120% 80% at 50% -10%, #f7ecdc 0%, transparent 55%),
+        linear-gradient(165deg, #dccfb8, #c9b79a);
+    }
+
+    .stage { width: min(100%, 420px); display: grid; gap: 14px; justify-items: center; }
+    .meta {
+      width: min(100%, 390px);
+      color: var(--ink-soft);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .meta strong { color: var(--ink); font-weight: 600; }
+    .meta code {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      background: rgba(255, 248, 238, 0.75);
+      padding: 1px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+    }
+
+    .phone {
+      position: relative;
+      width: min(100%, 390px);
+      height: min(844px, calc(100vh - 100px));
+      min-height: 680px;
+      background: var(--paper);
+      border-radius: 40px;
+      box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.55), 0 0 0 10px #efe4d2, 0 0 0 11px rgba(80,60,40,.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* warm corner washes — diary light, not plastic flat */
+    .phone::before {
+      content: "";
+      position: absolute;
+      left: -18%;
+      top: -12%;
+      width: 70%;
+      height: 38%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(232, 196, 176, 0.45), transparent 72%);
+      filter: blur(18px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .phone::after {
+      content: "";
+      position: absolute;
+      right: -22%;
+      top: 8%;
+      width: 58%;
+      height: 32%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(47, 107, 79, 0.10), transparent 70%);
+      filter: blur(22px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.42;
+      mix-blend-mode: multiply;
+    }
+    .ruled {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.22;
+      background-image: linear-gradient(rgba(90, 70, 50, 0.07) 1px, transparent 1px);
+      background-size: 100% 30px;
+      background-position: 0 52px;
+      mask-image: linear-gradient(180deg, transparent 0, #000 48px, #000 calc(100% - 90px), transparent);
+    }
+    .spine {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 10px;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(90, 60, 40, 0.10), transparent);
+    }
+
+    .status {
+      flex: 0 0 auto;
+      height: 48px;
+      padding: 14px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      position: relative;
+      z-index: 4;
+    }
+
+    .app {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 4;
+    }
+
+    .screen { display: none; flex: 1; min-height: 0; flex-direction: column; animation: none; }
+    .screen.active { display: flex; animation: rise .28s var(--ease); }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .screen.active { animation: none; }
+      .primary:active, .chip:active, .nav-item:active, .icon-btn:active, .row:active { transform: none; }
+      * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+
+    .topbar {
+      padding: 2px 20px 12px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .brand span {
+      display: block;
+      margin-top: 8px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      letter-spacing: 0.04em;
+    }
+    .icon-btn, .text-btn, .chip, .primary, .ghost, .nav-item, .row, .fab {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      background: none;
+    }
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r-sm);
+      background: var(--sheet);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      transition: transform .16s var(--ease);
+    }
+    .icon-btn:active { transform: scale(0.96); }
+    .back-row {
+      padding: 0 12px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .back-row .title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+
+    .scroll {
+      flex: 1;
+      overflow: auto;
+      overflow-x: clip;
+      padding: 0 16px calc(var(--tab-h) + 28px);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .year-switch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 2px 0 14px;
+    }
+    .year-switch .y {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip {
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: var(--sheet);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      font-size: 12px;
+      color: var(--ink-soft);
+      min-height: 36px;
+      transition: transform .16s var(--ease), background .16s;
+    }
+    .chip:active { transform: scale(0.97); }
+    .chip.on {
+      background: var(--sage-soft);
+      border-color: rgba(47, 107, 79, 0.22);
+      color: var(--sage);
+      font-weight: 600;
+    }
+
+    .summary {
+      background: var(--sheet);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 16px 15px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .summary::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 14px; bottom: 14px;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: var(--sage);
+      opacity: 0.55;
+    }
+    .summary::after {
+      content: "";
+      position: absolute;
+      right: -24px;
+      top: -36px;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232, 196, 176, 0.55), transparent 70%);
+    }
+    .summary .label { font-size: 12px; color: var(--ink-3); position: relative; z-index: 1; }
+    .summary .amount {
+      margin-top: 6px;
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      position: relative;
+      z-index: 1;
+    }
+    .summary .hint { margin-top: 8px; font-size: 12px; color: var(--ink-soft); position: relative; z-index: 1; line-height: 1.45; }
+
+    .card {
+      background: var(--sheet);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .card-hd {
+      padding: 12px 14px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 12px;
+      color: var(--ink-3);
+    }
+    .row {
+      width: 100%;
+      text-align: left;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px 12px;
+      border-top: 1px solid transparent;
+      align-items: center;
+      transition: background .16s var(--ease), transform .16s var(--ease);
+      min-height: 44px;
+    }
+    .row:active { background: var(--panel-2); }
+    .row + .row, .list .row { border-top: 1px solid var(--line); }
+    .row .name { font-weight: 600; font-size: 15px; }
+    .row .sub { grid-column: 1 / -1; font-size: 12px; color: var(--ink-soft); margin-top: -2px; line-height: 1.4; }
+    .row .num {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .delta.up { color: var(--down); font-size: 12px; }
+    .delta.down { color: var(--up); font-size: 12px; }
+    .delta.flat { color: var(--ink-3); font-size: 12px; }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--paper-deep);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #4d8a6a, var(--sage));
+      border-radius: inherit;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: var(--panel-2);
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
+    }
+    .badge.pending { background: rgba(168, 90, 56, 0.12); color: var(--warn); border-color: rgba(168, 90, 56, 0.18); }
+    .badge.done { background: var(--sage-soft); color: var(--sage); border-color: rgba(47, 107, 79, 0.18); }
+
+    .form { display: grid; gap: 12px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--ink-3);
+      margin-bottom: 6px;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--sheet);
+      border-radius: 14px;
+      padding: 13px 14px;
+      font: inherit;
+      color: var(--ink);
+      outline: none;
+      min-height: 46px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+    }
+    .field textarea { min-height: 92px; resize: none; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: rgba(47, 107, 79, 0.45);
+      box-shadow: 0 0 0 3px var(--sage-soft);
+    }
+
+    .actions { display: grid; gap: 10px; margin-top: 8px; }
+    .primary, .ghost {
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-weight: 600;
+      font-size: 15px;
+      min-height: 48px;
+      transition: transform .16s var(--ease), box-shadow .16s;
+    }
+    .primary {
+      background: var(--sage);
+      color: var(--on-accent);
+      box-shadow: 0 10px 22px -10px var(--glow);
+    }
+    .primary:active { transform: scale(0.98); }
+    .ghost {
+      background: transparent;
+      border: 1px dashed rgba(36, 28, 22, 0.16);
+      color: var(--ink-soft);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--tab-h) + 18px);
+      transform: translateX(-50%) translateY(12px);
+      background: var(--ink);
+      color: #f6efe4;
+      padding: 11px 15px;
+      border-radius: 14px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s var(--ease);
+      z-index: 8;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .tabbar {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      background: rgba(255, 248, 238, 0.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 6px;
+      box-shadow: var(--shadow);
+      z-index: 7;
+    }
+    .nav-item {
+      border-radius: 18px;
+      padding: 11px 8px 10px;
+      display: grid;
+      gap: 3px;
+      justify-items: center;
+      color: var(--ink-3);
+      font-size: 12px;
+      min-height: 52px;
+      transition: background .16s var(--ease), color .16s, transform .16s;
+    }
+    .nav-item:active { transform: scale(0.97); }
+    .nav-item .ico { font-size: 18px; line-height: 1; }
+    .nav-item.active {
+      background: var(--sage-soft);
+      color: var(--sage);
+      font-weight: 600;
+    }
+
+    .home-ind {
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      transform: translateX(-50%);
+      width: 118px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(36, 28, 22, 0.22);
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--ink-soft);
+      line-height: 1.55;
+      padding: 11px 13px;
+      background: rgba(255, 248, 238, 0.62);
+      border: 1px dashed rgba(36, 28, 22, 0.14);
+      border-radius: 14px;
+      margin-bottom: 12px;
+    }
+
+    .month-block { margin-bottom: 8px; }
+    .month-block .m {
+      font-size: 12px;
+      color: var(--ink-3);
+      padding: 8px 4px 4px;
+      font-weight: 600;
+    }
+
+    .switch {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      line-height: 1.4;
+    }
+    .switch input { margin-top: 3px; }
+    .switch.tight {
+      align-items: center;
+      position: relative;
+      width: 48px;
+      height: 28px;
+      flex: 0 0 auto;
+    }
+    .switch.tight input {
+      opacity: 0;
+      width: 48px;
+      height: 28px;
+      margin: 0;
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .switch.tight .knob {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #d5c8b8;
+      transition: .2s;
+    }
+    .switch.tight .knob::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--sheet);
+      box-shadow: 0 1px 4px rgba(60,40,24,.18);
+      transition: .2s;
+    }
+    .switch.tight input:checked + .knob { background: var(--sage); }
+    .switch.tight input:checked + .knob::after { transform: translateX(20px); }
+    .row.dim .name, .row.dim .sub { opacity: .55; }
+
+    .bar-chart {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 5px;
+      align-items: end;
+      height: 124px;
+      padding: 4px 0 0;
+    }
+    .bar-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 5px;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .bar-pair {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      min-height: 0;
+    }
+    .bar {
+      width: 72%;
+      max-width: 15px;
+      border-radius: 6px 6px 2px 2px;
+      min-height: 2px;
+    }
+    .bar.this { background: linear-gradient(180deg, #5f9174, var(--sage)); }
+    .bar-col .mlabel {
+      font-size: 9px;
+      color: var(--ink-3);
+      line-height: 1;
+    }
+    .bar-col.active .mlabel { color: var(--sage); font-weight: 700; }
+    .bar-col.active .bar.this { box-shadow: 0 0 0 2px rgba(47,107,79,.22); }
+
+    @media (min-width: 560px) {
+      body { padding: 28px 16px; }
+      .phone { height: min(844px, 92vh); }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="meta">
+      <strong>Hive</strong> 可点击原型 · 更暖的日记本手感（纸纹 + 装订边）<br />
+      底部切换「消费 / 梦想」。流程不变，观感按 finesse 精修。<br />
+      文件：<code>prototypes/hive-v1/index.html</code>
+    </div>
+
+    <div class="phone" id="phone">
+      <svg class="grain" aria-hidden="true" width="100%" height="100%">
+        <filter id="paperNoise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.32  0 0 0 0 0.20  0 0 0 0.35 0"/>
+        </filter>
+        <rect width="100%" height="100%" filter="url(#paperNoise)" opacity="0.55"/>
+      </svg>
+      <div class="ruled" aria-hidden="true"></div>
+      <div class="spine" aria-hidden="true"></div>
+      <div class="status"><span>9:41</span><span>Hive</span></div>
+      <div class="app">
+
+        <!-- 消费首页 -->
+        <section class="screen active" data-screen="spend-home">
+          <div class="topbar">
+            <div class="brand">Hive<span>消费 · 按类对照</span></div>
+            <button class="icon-btn" type="button" data-go="settings" title="设置">⚙</button>
+          </div>
+          <div class="scroll">
+            <div class="year-switch">
+              <button class="icon-btn" type="button" id="yearPrev">‹</button>
+              <div class="y" id="yearLabel">2026</div>
+              <button class="icon-btn" type="button" id="yearNext">›</button>
+            </div>
+            <div class="chips">
+              <button class="chip on" type="button" data-go="pending">本月待确认 · 4</button>
+              <button class="chip" type="button" data-go="spend-add">＋ 记一笔</button>
+              <button class="chip" type="button" data-go="categories">分类 / 模板</button>
+            </div>
+            <div class="summary">
+              <div class="label">今年已确认合计</div>
+              <div class="amount" id="yearTotal">¥48,620</div>
+              <div class="hint">较去年同类合计少 ¥3,140 · 水/电/燃气已分列 · 不含梦想存入</div>
+            </div>
+            <div class="card list" id="categoryList"></div>
+          </div>
+        </section>
+
+        <!-- 待确认 -->
+        <section class="screen" data-screen="pending">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="spend-home">‹</button>
+            <div class="title">本月待确认</div>
+          </div>
+          <div class="scroll">
+            <div class="note">由月度模板自动生成各 1 条；确认后计入统计。同月同分类仍可再手记多笔。</div>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="name">停车费</div>
+                  <div class="sub">模板 · 2026-08-01 · 默认金额可改</div>
+                </div>
+                <span class="badge pending">待确认</span>
+              </div>
+              <div style="padding:0 14px 14px;display:grid;gap:10px">
+                <div class="field"><label>金额</label><input type="number" value="500" id="p1amt" /></div>
+                <div class="field"><label>日期</label><input type="date" value="2026-08-01" id="p1date" /></div>
+                <button class="primary" type="button" data-toast="停车费已确认">确认入账</button>
+                <button class="ghost" type="button" data-toast="已跳过本月停车费">跳过本月</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="name">水费</div>
+                  <div class="sub">模板 · 2026-08-01</div>
+                </div>
+                <span class="badge pending">待确认</span>
+              </div>
+              <div style="padding:0 14px 14px;display:grid;gap:10px">
+                <div class="field"><label>金额</label><input type="number" value="48" /></div>
+                <div class="field"><label>日期</label><input type="date" value="2026-08-01" /></div>
+                <div class="field"><label>备注</label><input type="text" placeholder="可选" /></div>
+                <button class="primary" type="button" data-toast="水费已确认">确认入账</button>
+                <button class="ghost" type="button" data-toast="已跳过本月水费">跳过本月</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="name">电费</div>
+                  <div class="sub">模板 · 2026-08-01</div>
+                </div>
+                <span class="badge pending">待确认</span>
+              </div>
+              <div style="padding:0 14px 14px;display:grid;gap:10px">
+                <div class="field"><label>金额</label><input type="number" value="320" /></div>
+                <div class="field"><label>日期</label><input type="date" value="2026-08-01" /></div>
+                <div class="field"><label>备注</label><input type="text" placeholder="可选" /></div>
+                <button class="primary" type="button" data-toast="电费已确认">确认入账</button>
+                <button class="ghost" type="button" data-toast="已跳过本月电费">跳过本月</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="name">燃气费</div>
+                  <div class="sub">模板 · 2026-08-01</div>
+                </div>
+                <span class="badge pending">待确认</span>
+              </div>
+              <div style="padding:0 14px 14px;display:grid;gap:10px">
+                <div class="field"><label>金额</label><input type="number" value="86" /></div>
+                <div class="field"><label>日期</label><input type="date" value="2026-08-01" /></div>
+                <div class="field"><label>备注</label><input type="text" placeholder="例如：抄表" /></div>
+                <button class="primary" type="button" data-toast="燃气费已确认">确认入账</button>
+                <button class="ghost" type="button" data-toast="已跳过本月燃气费">跳过本月</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 记一笔 -->
+        <section class="screen" data-screen="spend-add">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="spend-home">‹</button>
+            <div class="title">记一笔消费</div>
+          </div>
+          <div class="scroll">
+            <div class="form">
+              <div class="field">
+                <label>分类</label>
+                <select id="addCat">
+                  <option>旅行</option>
+                  <option>停车费</option>
+                  <option>水费</option>
+                  <option>电费</option>
+                  <option>燃气费</option>
+                  <option>保险费</option>
+                  <option>生活大额</option>
+                </select>
+              </div>
+              <div class="field"><label>金额</label><input type="number" placeholder="0.00" value="18600" /></div>
+              <div class="field"><label>日期</label><input type="date" value="2026-08-15" /></div>
+              <div class="field"><label>备注</label><textarea placeholder="例如：国庆日本 · 含机票酒店">国庆日本 · 机票+酒店</textarea></div>
+              <div class="actions">
+                <button class="primary" type="button" data-toast="已记入消费" data-go="spend-home">保存</button>
+                <button class="ghost" type="button" data-go="spend-home">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 分类详情 -->
+        <section class="screen" data-screen="cat-detail">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="spend-home">‹</button>
+            <div class="title" id="catDetailTitle">停车费</div>
+            <button class="chip" type="button" data-go="spend-add" style="margin-left:auto">＋ 记一笔</button>
+          </div>
+          <div class="scroll">
+            <div class="summary">
+              <div class="label">2026 年合计</div>
+              <div class="amount" id="catDetailAmount">¥4,200</div>
+              <div class="hint" id="catDetailYoY">较 2025 多 ¥400（+10.5%）</div>
+            </div>
+            <div class="card" style="padding:14px 12px 10px;margin-bottom:12px">
+              <div class="card-hd" style="padding:0 2px 8px;border:0">
+                <span>按月</span>
+                <span style="font-size:11px">已确认合计</span>
+              </div>
+              <div class="bar-chart" id="catBarChart" aria-label="按月柱状图"></div>
+            </div>
+            <div class="note">同月可有多笔。单柱为该月已确认合计；点柱可对照下方明细。</div>
+            <div class="card" id="catDetailList"></div>
+          </div>
+        </section>
+
+        <!-- 分类模板 -->
+        <section class="screen" data-screen="categories">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="spend-home">‹</button>
+            <div class="title">分类与模板</div>
+          </div>
+          <div class="scroll">
+            <div class="note">
+              <strong>分类</strong>是年对比的维度；<strong>月度模板</strong>打开后每月自动生成 1 条待确认，同月仍可再手记多笔。改名不断档；不用了请「停用」。
+            </div>
+            <div class="chips">
+              <button class="chip on" type="button" id="catFilterActive">启用中</button>
+              <button class="chip" type="button" id="catFilterAll">含已停用</button>
+              <button class="chip" type="button" id="btnNewCat">＋ 新建分类</button>
+            </div>
+            <div class="card list" id="manageCatList"></div>
+          </div>
+        </section>
+
+        <!-- 新建/编辑分类 -->
+        <section class="screen" data-screen="cat-edit">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="categories">‹</button>
+            <div class="title" id="catEditTitle">编辑分类</div>
+          </div>
+          <div class="scroll">
+            <div class="form">
+              <div class="field"><label>名称</label><input type="text" id="ceName" placeholder="例如：水费" /></div>
+              <div class="field"><label>排序（数字越小越靠前）</label><input type="number" id="ceSort" value="1" min="1" /></div>
+              <div class="field">
+                <label>启用此分类</label>
+                <label class="switch"><input type="checkbox" id="ceEnabled" checked /><span>开启后可在记一笔与首页中出现</span></label>
+              </div>
+              <div class="card" style="padding:14px;margin:0">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div>
+                    <div class="name" style="font-weight:600">月度模板</div>
+                    <div class="sub" style="font-size:12px;color:var(--ink-soft);margin-top:4px">每月自动生成 1 条待确认</div>
+                  </div>
+                  <label class="switch tight"><input type="checkbox" id="ceTemplate" /><span class="knob"></span></label>
+                </div>
+                <div id="ceTemplateFields" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+                  <div class="field"><label>默认金额（元）</label><input type="number" id="ceDefaultAmt" placeholder="0" /></div>
+                  <div class="field"><label>生成日（每月几号，1–28）</label><input type="number" id="ceDay" value="1" min="1" max="28" /></div>
+                  <div class="field"><label>默认备注（可选）</label><input type="text" id="ceDefaultNote" placeholder="例如：公司车位" /></div>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="primary" type="button" id="ceSave">保存</button>
+                <button class="ghost" type="button" id="ceDisable" style="display:none">停用此分类</button>
+                <button class="ghost" type="button" data-go="categories">取消</button>
+              </div>
+              <div class="note" style="margin-top:8px">有历史消费时不可硬删除，请用停用，以免年对比断档。</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 梦想列表 -->
+        <section class="screen" data-screen="dream-home">
+          <div class="topbar">
+            <div class="brand">Hive<span>梦想 · 储蓄罐</span></div>
+            <button class="icon-btn" type="button" data-go="settings">⚙</button>
+          </div>
+          <div class="scroll">
+            <div class="note">与消费分账：存入不计入年对比。不支持取出；可标记完成。</div>
+            <div class="chips">
+              <button class="chip on" type="button">进行中</button>
+              <button class="chip" type="button" id="toggleDoneDreams">含已完成</button>
+              <button class="chip" type="button" data-toast="原型占位：新建罐子">＋ 新建罐子</button>
+            </div>
+            <div class="card list" id="dreamList"></div>
+          </div>
+        </section>
+
+        <!-- 梦想详情 -->
+        <section class="screen" data-screen="dream-detail">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="dream-home">‹</button>
+            <div class="title" id="dreamTitle">北海道滑雪</div>
+          </div>
+          <div class="scroll">
+            <div class="summary">
+              <div class="label">已存 / 目标</div>
+              <div class="amount" id="dreamAmount">¥12,800<span style="font-size:16px;color:var(--ink-soft)"> / 20,000</span></div>
+              <div class="progress" style="margin-top:12px;position:relative;z-index:1"><i style="width:64%"></i></div>
+              <div class="hint">还差 ¥7,200 · 进行中</div>
+            </div>
+            <div class="chips">
+              <button class="chip on" type="button" data-go="dream-add">＋ 存一笔</button>
+              <button class="chip" type="button" data-toast="已标记为完成" id="completeDream">标记已完成</button>
+            </div>
+            <div class="card">
+              <div class="card-hd"><span>存入记录</span><span>到天</span></div>
+              <div class="row"><div class="name">¥2,000</div><div class="num" style="font-size:13px;color:var(--ink-soft)">08-20</div><div class="sub">月底结余丢进去</div></div>
+              <div class="row"><div class="name">¥3,800</div><div class="num" style="font-size:13px;color:var(--ink-soft)">07-12</div><div class="sub">年中奖</div></div>
+              <div class="row"><div class="name">¥7,000</div><div class="num" style="font-size:13px;color:var(--ink-soft)">03-01</div><div class="sub">开罐</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 存一笔梦想 -->
+        <section class="screen" data-screen="dream-add">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="dream-detail">‹</button>
+            <div class="title">存入梦想</div>
+          </div>
+          <div class="scroll">
+            <div class="form">
+              <div class="field"><label>罐子</label><input type="text" value="北海道滑雪" readonly /></div>
+              <div class="field"><label>金额</label><input type="number" placeholder="0.00" value="1000" /></div>
+              <div class="field"><label>日期</label><input type="date" value="2026-08-31" /></div>
+              <div class="field"><label>备注</label><textarea placeholder="可选">八月固定存</textarea></div>
+              <div class="actions">
+                <button class="primary" type="button" data-toast="已存入罐子" data-go="dream-detail">保存</button>
+                <button class="ghost" type="button" data-go="dream-detail">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 设置 -->
+        <section class="screen" data-screen="settings">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="spend-home">‹</button>
+            <div class="title">设置</div>
+          </div>
+          <div class="scroll">
+            <div class="card list">
+              <div class="row"><div class="name">导出备份</div><div class="sub">第一期占位 · 本地文件</div></div>
+              <div class="row"><div class="name">从备份恢复</div><div class="sub">第一期占位</div></div>
+              <div class="row"><div class="name">家人权限</div><div class="sub">后续版本 · 当前仅自己</div></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="tabbar" id="tabbar">
+          <button class="nav-item active" type="button" data-tab="spend" data-go="spend-home">
+            <span class="ico">📒</span><span>消费</span>
+          </button>
+          <button class="nav-item" type="button" data-tab="dream" data-go="dream-home">
+            <span class="ico">🫙</span><span>梦想</span>
+          </button>
+        </div>
+        <div class="toast" id="toast"></div>
+        <div class="home-ind" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const categories = [
+      { id: "parking", name: "停车费", amount: 4200, yoy: 400, yoyPct: 10.5 },
+      { id: "water", name: "水费", amount: 560, yoy: -40, yoyPct: -6.7 },
+      { id: "electric", name: "电费", amount: 3680, yoy: -180, yoyPct: -4.7 },
+      { id: "gas", name: "燃气费", amount: 940, yoy: -100, yoyPct: -9.6 },
+      { id: "insurance", name: "保险费", amount: 9600, yoy: 0, yoyPct: 0 },
+      { id: "travel", name: "旅行", amount: 24640, yoy: -4200, yoyPct: -14.6 },
+      { id: "big", name: "生活大额", amount: 5000, yoy: 880, yoyPct: 21.4 },
+    ];
+
+    const categoryMeta = [
+      { id: "parking", name: "停车费", sort: 1, enabled: true, template: true, defaultAmt: 500, day: 1, defaultNote: "公司车位" },
+      { id: "water", name: "水费", sort: 2, enabled: true, template: true, defaultAmt: 50, day: 1, defaultNote: "" },
+      { id: "electric", name: "电费", sort: 3, enabled: true, template: true, defaultAmt: 300, day: 1, defaultNote: "" },
+      { id: "gas", name: "燃气费", sort: 4, enabled: true, template: true, defaultAmt: 80, day: 1, defaultNote: "" },
+      { id: "insurance", name: "保险费", sort: 5, enabled: true, template: false, defaultAmt: 0, day: 1, defaultNote: "" },
+      { id: "travel", name: "旅行", sort: 6, enabled: true, template: false, defaultAmt: 0, day: 1, defaultNote: "" },
+      { id: "big", name: "生活大额", sort: 7, enabled: true, template: false, defaultAmt: 0, day: 1, defaultNote: "" },
+    ];
+
+    const catDetails = {
+      parking: [
+        { month: "2026-08", items: [
+          { date: "08-01", amount: 500, note: "公司车位 · 模板", pending: true },
+          { date: "08-18", amount: 80, note: "临时停车商场" },
+        ]},
+        { month: "2026-07", items: [
+          { date: "07-01", amount: 500, note: "公司车位" },
+          { date: "07-09", amount: 120, note: "机场停车" },
+        ]},
+      ],
+      water: [
+        { month: "2026-08", items: [
+          { date: "08-01", amount: 48, note: "月度水费 · 模板", pending: true },
+        ]},
+        { month: "2026-07", items: [
+          { date: "07-03", amount: 52, note: "月度水费" },
+        ]},
+      ],
+      electric: [
+        { month: "2026-08", items: [
+          { date: "08-01", amount: 320, note: "月度电费 · 模板", pending: true },
+        ]},
+        { month: "2026-07", items: [
+          { date: "07-05", amount: 298, note: "月度电费" },
+        ]},
+      ],
+      gas: [
+        { month: "2026-08", items: [
+          { date: "08-01", amount: 86, note: "月度燃气 · 模板", pending: true },
+        ]},
+        { month: "2026-07", items: [
+          { date: "07-08", amount: 79, note: "月度燃气" },
+        ]},
+      ],
+      travel: [
+        { month: "2026-08", items: [
+          { date: "08-15", amount: 18600, note: "国庆日本 · 机票+酒店" },
+        ]},
+        { month: "2026-02", items: [
+          { date: "02-10", amount: 6040, note: "春节短途" },
+        ]},
+      ],
+    };
+
+    const dreams = [
+      { id: "ski", name: "北海道滑雪", saved: 12800, goal: 20000, done: false },
+      { id: "car", name: "换车基金", saved: 42000, goal: 120000, done: false },
+      { id: "edu", name: "孩子教育", saved: 30000, goal: 30000, done: true },
+    ];
+
+    let year = 2026;
+    let showDoneDreams = false;
+    let showDisabledCats = false;
+    let currentCat = "parking";
+    let editingCatId = null;
+
+    const screens = [...document.querySelectorAll(".screen")];
+    const toastEl = document.getElementById("toast");
+
+    function go(name) {
+      screens.forEach((s) => s.classList.toggle("active", s.dataset.screen === name));
+      const tabbar = document.getElementById("tabbar");
+      const hideTab = ["spend-add", "dream-add", "settings", "categories", "cat-edit", "pending", "cat-detail", "dream-detail"].includes(name);
+      tabbar.style.display = hideTab ? "none" : "grid";
+      if (name === "spend-home" || name === "dream-home") {
+        document.querySelectorAll(".nav-item").forEach((n) => {
+          n.classList.toggle("active", n.dataset.tab === (name.startsWith("dream") ? "dream" : "spend"));
+        });
+      }
+      if (name === "cat-detail") renderCatDetail();
+      if (name === "dream-home") renderDreams();
+      if (name === "categories") renderManageCats();
+    }
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(() => toastEl.classList.remove("show"), 1600);
+    }
+
+    function fmt(n) {
+      return "¥" + Math.abs(n).toLocaleString("zh-CN");
+    }
+
+    function syncTemplateFields() {
+      const on = document.getElementById("ceTemplate").checked;
+      document.getElementById("ceTemplateFields").style.display = on ? "grid" : "none";
+      document.getElementById("ceTemplateFields").style.gap = "12px";
+    }
+
+    function openCatEdit(id) {
+      editingCatId = id;
+      const title = document.getElementById("catEditTitle");
+      const disableBtn = document.getElementById("ceDisable");
+      if (!id) {
+        title.textContent = "新建分类";
+        document.getElementById("ceName").value = "";
+        document.getElementById("ceSort").value = String(categoryMeta.length + 1);
+        document.getElementById("ceEnabled").checked = true;
+        document.getElementById("ceTemplate").checked = false;
+        document.getElementById("ceDefaultAmt").value = "";
+        document.getElementById("ceDay").value = "1";
+        document.getElementById("ceDefaultNote").value = "";
+        disableBtn.style.display = "none";
+      } else {
+        const m = categoryMeta.find((x) => x.id === id);
+        title.textContent = "编辑分类";
+        document.getElementById("ceName").value = m.name;
+        document.getElementById("ceSort").value = m.sort;
+        document.getElementById("ceEnabled").checked = m.enabled;
+        document.getElementById("ceTemplate").checked = m.template;
+        document.getElementById("ceDefaultAmt").value = m.template ? m.defaultAmt : "";
+        document.getElementById("ceDay").value = m.day;
+        document.getElementById("ceDefaultNote").value = m.defaultNote || "";
+        disableBtn.style.display = m.enabled ? "block" : "none";
+        disableBtn.textContent = m.enabled ? "停用此分类" : "重新启用";
+      }
+      syncTemplateFields();
+      go("cat-edit");
+    }
+
+    function renderManageCats() {
+      const root = document.getElementById("manageCatList");
+      const items = categoryMeta
+        .filter((c) => showDisabledCats || c.enabled)
+        .sort((a, b) => a.sort - b.sort);
+      root.innerHTML = `<div class="card-hd"><span>点进可编辑</span><span>${items.length} 个</span></div>` + items.map((c) => {
+        const badge = c.template
+          ? `<span class="badge">模板 ¥${c.defaultAmt} · ${c.day}日</span>`
+          : `<span class="badge">仅手记</span>`;
+        const state = c.enabled ? `启用 · 排序 ${c.sort}` : `已停用 · 排序 ${c.sort}`;
+        return `<button class="row ${c.enabled ? "" : "dim"}" type="button" data-edit-cat="${c.id}">
+          <div class="name">${c.name}</div>
+          ${badge}
+          <div class="sub">${state}${c.defaultNote ? " · " + c.defaultNote : ""}</div>
+        </button>`;
+      }).join("");
+      root.querySelectorAll("[data-edit-cat]").forEach((btn) => {
+        btn.addEventListener("click", () => openCatEdit(btn.dataset.editCat));
+      });
+    }
+
+    function renderCategories() {
+      const root = document.getElementById("categoryList");
+      root.innerHTML = `<div class="card-hd"><span>按类</span><span>点进详情</span></div>` + categories.map((c) => {
+        const cls = c.yoy > 0 ? "up" : c.yoy < 0 ? "down" : "flat";
+        const label = c.yoy > 0 ? `较去年多 ${fmt(c.yoy)}` : c.yoy < 0 ? `较去年少 ${fmt(c.yoy)}` : "与去年持平";
+        return `<button class="row" type="button" data-cat="${c.id}">
+          <div class="name">${c.name}</div>
+          <div class="num">${fmt(c.amount)}</div>
+          <div class="sub"><span class="delta ${cls}">${label}（${c.yoyPct > 0 ? "+" : ""}${c.yoyPct}%）</span></div>
+        </button>`;
+      }).join("");
+      root.querySelectorAll("[data-cat]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          currentCat = btn.dataset.cat;
+          go("cat-detail");
+        });
+      });
+    }
+
+    function monthlySeries(catId) {
+      // 原型示意：所选年 1–12 月已确认合计
+      const demo = {
+        parking: [500, 500, 620, 500, 500, 580, 620, 580, 500, 500, 500, 500],
+        water: [45, 48, 52, 40, 42, 55, 52, 48, 46, 44, 50, 38],
+        electric: [280, 260, 240, 220, 250, 380, 420, 400, 320, 280, 300, 330],
+        gas: [120, 110, 90, 60, 40, 30, 35, 40, 50, 70, 95, 130],
+        travel: [0, 6040, 0, 0, 0, 0, 0, 18600, 0, 0, 0, 0],
+      };
+      return demo[catId] || [200, 220, 180, 240, 260, 300, 280, 250, 230, 210, 240, 270];
+    }
+
+    function renderBarChart(catId) {
+      const root = document.getElementById("catBarChart");
+      const months = monthlySeries(catId);
+      const max = Math.max(...months, 1);
+      root.innerHTML = months.map((v, i) => {
+        const h = Math.max(2, Math.round((v / max) * 92));
+        return `<button class="bar-col" type="button" data-month="${i + 1}" title="${i + 1}月：${v}">
+          <div class="bar-pair">
+            <span class="bar this" style="height:${h}%"></span>
+          </div>
+          <span class="mlabel">${i + 1}</span>
+        </button>`;
+      }).join("");
+      root.querySelectorAll(".bar-col").forEach((col) => {
+        col.addEventListener("click", () => {
+          root.querySelectorAll(".bar-col").forEach((c) => c.classList.remove("active"));
+          col.classList.add("active");
+          toast(`${col.dataset.month} 月（示意）`);
+        });
+      });
+    }
+
+    function renderCatDetail() {
+      const c = categories.find((x) => x.id === currentCat) || categories[0];
+      document.getElementById("catDetailTitle").textContent = c.name;
+      document.getElementById("catDetailAmount").textContent = fmt(c.amount);
+      const cls = c.yoy > 0 ? "多" : c.yoy < 0 ? "少" : "持平";
+      document.getElementById("catDetailYoY").textContent =
+        c.yoy === 0 ? "与 2025 持平" : `较 2025 ${cls} ${fmt(c.yoy)}（${c.yoyPct > 0 ? "+" : ""}${c.yoyPct}%）`;
+      renderBarChart(currentCat);
+      const blocks = catDetails[currentCat] || catDetails.parking;
+      const list = document.getElementById("catDetailList");
+      list.innerHTML = blocks.map((b) => {
+        const sum = b.items.reduce((s, i) => s + (i.pending ? 0 : i.amount), 0);
+        return `<div class="month-block">
+          <div class="m">${b.month} · 已确认 ${fmt(sum)}</div>
+          ${b.items.map((i) => `<div class="row">
+            <div class="name">${fmt(i.amount)}</div>
+            <div class="num" style="font-size:13px;color:var(--ink-soft)">${i.date}${i.pending ? " · 待确认" : ""}</div>
+            <div class="sub">${i.note}</div>
+          </div>`).join("")}
+        </div>`;
+      }).join("");
+    }
+
+    function renderDreams() {
+      const list = document.getElementById("dreamList");
+      const items = dreams.filter((d) => showDoneDreams || !d.done);
+      list.innerHTML = items.map((d) => {
+        const pct = Math.min(100, Math.round((d.saved / d.goal) * 100));
+        return `<button class="row" type="button" data-dream="${d.id}">
+          <div class="name">${d.name} ${d.done ? '<span class="badge done">已完成</span>' : ""}</div>
+          <div class="num">${fmt(d.saved)}</div>
+          <div class="sub">目标 ${fmt(d.goal)} · ${pct}%
+            <div class="progress"><i style="width:${pct}%"></i></div>
+          </div>
+        </button>`;
+      }).join("");
+      list.querySelectorAll("[data-dream]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const d = dreams.find((x) => x.id === btn.dataset.dream);
+          document.getElementById("dreamTitle").textContent = d.name;
+          document.getElementById("dreamAmount").innerHTML =
+            `${fmt(d.saved)}<span style="font-size:16px;color:var(--ink-soft)"> / ${d.goal.toLocaleString("zh-CN")}</span>`;
+          go("dream-detail");
+        });
+      });
+    }
+
+    document.querySelectorAll("[data-go]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const target = el.getAttribute("data-go");
+        const msg = el.getAttribute("data-toast");
+        if (msg) toast(msg);
+        if (target) go(target);
+      });
+    });
+
+    document.querySelectorAll("[data-toast]:not([data-go])").forEach((el) => {
+      el.addEventListener("click", () => toast(el.getAttribute("data-toast")));
+    });
+
+    document.getElementById("yearPrev").onclick = () => {
+      year -= 1;
+      document.getElementById("yearLabel").textContent = year;
+    };
+    document.getElementById("yearNext").onclick = () => {
+      year += 1;
+      document.getElementById("yearLabel").textContent = year;
+    };
+    document.getElementById("toggleDoneDreams").onclick = (e) => {
+      showDoneDreams = !showDoneDreams;
+      e.currentTarget.classList.toggle("on", showDoneDreams);
+      renderDreams();
+    };
+
+    document.getElementById("catFilterActive").onclick = (e) => {
+      showDisabledCats = false;
+      e.currentTarget.classList.add("on");
+      document.getElementById("catFilterAll").classList.remove("on");
+      renderManageCats();
+    };
+    document.getElementById("catFilterAll").onclick = (e) => {
+      showDisabledCats = true;
+      e.currentTarget.classList.add("on");
+      document.getElementById("catFilterActive").classList.remove("on");
+      renderManageCats();
+    };
+    document.getElementById("btnNewCat").onclick = () => openCatEdit(null);
+    document.getElementById("ceTemplate").onchange = syncTemplateFields;
+    document.getElementById("ceSave").onclick = () => {
+      const name = document.getElementById("ceName").value.trim();
+      if (!name) { toast("请填写名称"); return; }
+      const payload = {
+        name,
+        sort: Number(document.getElementById("ceSort").value) || 1,
+        enabled: document.getElementById("ceEnabled").checked,
+        template: document.getElementById("ceTemplate").checked,
+        defaultAmt: Number(document.getElementById("ceDefaultAmt").value) || 0,
+        day: Math.min(28, Math.max(1, Number(document.getElementById("ceDay").value) || 1)),
+        defaultNote: document.getElementById("ceDefaultNote").value.trim(),
+      };
+      if (payload.template && !payload.defaultAmt) { toast("开启模板需填写默认金额"); return; }
+      if (!editingCatId) {
+        categoryMeta.push({ id: "c" + Date.now(), ...payload });
+        toast("已新建分类");
+      } else {
+        Object.assign(categoryMeta.find((x) => x.id === editingCatId), payload);
+        toast("已保存分类");
+      }
+      go("categories");
+    };
+    document.getElementById("ceDisable").onclick = () => {
+      if (!editingCatId) return;
+      const m = categoryMeta.find((x) => x.id === editingCatId);
+      m.enabled = !m.enabled;
+      toast(m.enabled ? "已重新启用" : "已停用（历史仍保留）");
+      go("categories");
+    };
+
+    renderCategories();
+    renderDreams();
+    renderManageCats();
+  </script>
+</body>
+</html>
