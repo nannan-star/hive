@@ -140,8 +140,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       );
       if (confirmed != true) return;
 
+      final epoch = ref.read(backupRestoreEpochProvider.notifier);
       await _backup.restore(payload);
-      ref.read(backupRestoreEpochProvider.notifier).state++;
+      epoch.state++;
       if (!mounted) return;
       _snack('已从备份恢复');
     } on BackupException catch (e) {
