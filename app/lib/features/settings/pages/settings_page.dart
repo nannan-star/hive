@@ -1,10 +1,31 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../data/providers.dart';
 import '../../../shared/theme/hive_colors.dart';
 import '../../../shared/widgets/hive_widgets.dart';
+import '../services/backup_service.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  bool _busy = false;
+
+  BackupService get _backup => BackupService(ref.read(databaseProvider));
 
   @override
   Widget build(BuildContext context) {
@@ -23,21 +44,21 @@ class SettingsPage extends StatelessWidget {
                       children: [
                         _SettingsTile(
                           title: '导出备份',
-                          subtitle: '第一期占位 · 本地文件',
+                          subtitle: '存到文件或发给自己',
                           showDivider: false,
-                          onTap: () => _placeholder(context),
+                          onTap: _busy ? null : _export,
                         ),
                         _SettingsTile(
                           title: '从备份恢复',
-                          subtitle: '第一期占位',
+                          subtitle: '将完全替换当前数据',
                           showDivider: true,
-                          onTap: () => _placeholder(context),
+                          onTap: _busy ? null : _import,
                         ),
                         _SettingsTile(
                           title: '家人权限',
                           subtitle: '后续版本 · 当前仅自己',
                           showDivider: true,
-                          onTap: () => _placeholder(context),
+                          onTap: () => _snack('第一期占位，功能即将推出'),
                         ),
                       ],
                     ),
@@ -51,10 +72,122 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  void _placeholder(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('第一期占位，功能即将推出')),
+  Future<void> _export() async {
+    setState(() => _busy = true);
+    try {
+      final json = await _backup.exportJson();
+      final name =
+          'hive-backup-${DateFormat('yyyyMMdd-HHmm').format(DateTime.now())}.json';
+      final file = File(p.join((await getTemporaryDirectory()).path, name));
+      await file.writeAsString(json);
+      final result = await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'application/json')],
+        ),
+      );
+      if (result.status == ShareResultStatus.unavailable) {
+        _snack('导出失败，请重试');
+      }
+    } catch (_) {
+      _snack('导出失败，请重试');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _import() async {
+    final picked = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
     );
+    if (picked == null) return;
+
+    setState(() => _busy = true);
+    try {
+      final bytes = await _readPickedBytes(picked);
+      final String source;
+      try {
+        source = utf8.decode(bytes);
+      } on FormatException {
+        throw BackupException(BackupErrorCode.unreadable);
+      }
+      final payload = _backup.parse(source);
+      if (!mounted) return;
+
+      final date =
+          DateFormat('yyyy-MM-dd').format(payload.exportedAt.toLocal());
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('从备份恢复'),
+          content: Text(
+            '将用 $date 的备份完全替换当前数据（分类 ${payload.categories.length}、'
+            '记账 ${payload.spendEntries.length}、梦想罐 ${payload.dreamJars.length}）。'
+            '此操作无法撤销。',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text(
+                '替换',
+                style: TextStyle(color: HiveColors.danger),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+
+      await _backup.restore(payload);
+      ref.read(backupRestoreEpochProvider.notifier).state++;
+      _snack('已从备份恢复');
+    } on BackupException catch (e) {
+      _snack(_message(e));
+    } catch (_) {
+      _snack('恢复失败，当前数据未改动');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<Uint8List> _readPickedBytes(PlatformFile file) async {
+    try {
+      return await file.readAsBytes();
+    } catch (_) {
+      final path = file.path;
+      if (path == null) {
+        throw BackupException(BackupErrorCode.unreadable);
+      }
+      try {
+        return await File(path).readAsBytes();
+      } catch (_) {
+        throw BackupException(BackupErrorCode.unreadable);
+      }
+    }
+  }
+
+  String _message(BackupException e) {
+    switch (e.code) {
+      case BackupErrorCode.unreadable:
+      case BackupErrorCode.notHive:
+      case BackupErrorCode.invalidPayload:
+      case BackupErrorCode.brokenReferences:
+        return '无法识别这份备份';
+      case BackupErrorCode.unsupportedFormat:
+      case BackupErrorCode.schemaMismatch:
+        return '备份版本不兼容';
+      case BackupErrorCode.io:
+        return '恢复失败，当前数据未改动';
+    }
+  }
+
+  void _snack(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 }
 
@@ -63,13 +196,13 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.showDivider,
-    required this.onTap,
+    this.onTap,
   });
 
   final String title;
   final String subtitle;
   final bool showDivider;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +224,10 @@ class _SettingsTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: HiveColors.ink,
+                      color: onTap == null ? HiveColors.dim : HiveColors.ink,
                     ),
                   ),
                   const SizedBox(height: 3),
