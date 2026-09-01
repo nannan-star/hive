@@ -33,6 +33,7 @@ class _SpendHomePageState extends ConsumerState<SpendHomePage> {
   @override
   Widget build(BuildContext context) {
     final year = ref.watch(selectedSpendYearProvider);
+    final epoch = ref.watch(backupRestoreEpochProvider);
     final db = ref.watch(databaseProvider);
     final stats = SpendStatsService(db);
     final now = DateTime.now();
@@ -56,7 +57,7 @@ class _SpendHomePageState extends ConsumerState<SpendHomePage> {
             ),
             Expanded(
               child: FutureBuilder(
-                key: ValueKey(year),
+                key: ValueKey('$year-$epoch'),
                 future: Future.wait([
                   stats.yearTotal(year),
                   stats.sumByCategory(year),
@@ -203,8 +204,10 @@ class _CategoryYearTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final epoch = ref.watch(backupRestoreEpochProvider);
     final stats = SpendStatsService(ref.watch(databaseProvider));
     return FutureBuilder<YoyResult>(
+      key: ValueKey('$epoch-${category.id}-$year'),
       future: stats.yoy(category.id, year),
       builder: (context, snap) {
         final yoy = snap.data;

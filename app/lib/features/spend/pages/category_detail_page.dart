@@ -39,9 +39,10 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
   Widget build(BuildContext context) {
     final db = ref.watch(databaseProvider);
     final stats = SpendStatsService(db);
+    final epoch = ref.watch(backupRestoreEpochProvider);
 
     return FutureBuilder<_DetailData>(
-      key: ValueKey('${widget.categoryId}-${widget.year}'),
+      key: ValueKey('${widget.categoryId}-${widget.year}-$epoch'),
       future: () async {
         final cat =
             await ref.read(categoriesDaoProvider).getById(widget.categoryId);

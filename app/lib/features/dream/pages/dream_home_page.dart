@@ -99,12 +99,14 @@ class _DreamCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final epoch = ref.watch(backupRestoreEpochProvider);
     final jars = ref.watch(dreamJarsProvider).valueOrNull ?? [];
     final match = jars.where((j) => j.id == jarId);
     if (match.isEmpty) return const SizedBox.shrink();
     final jar = match.first;
 
     return FutureBuilder<int>(
+      key: ValueKey('$epoch-$jarId'),
       future: ref.read(databaseProvider).dreamDao.sumDeposits(jar.id),
       builder: (context, snap) {
         final saved = snap.data ?? 0;
