@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/spend/pages/add_spend_page.dart';
 import 'features/spend/pages/categories_page.dart';
 import 'features/spend/pages/category_edit_page.dart';
+import 'features/spend/pages/pending_page.dart';
 import 'features/spend/pages/spend_home_page.dart';
 
 GoRouter createRouter() {
@@ -20,6 +22,16 @@ GoRouter createRouter() {
                 path: '/spend',
                 builder: (context, state) => const SpendHomePage(),
                 routes: [
+                  GoRoute(
+                    path: 'pending',
+                    builder: (context, state) => const PendingPage(),
+                  ),
+                  GoRoute(
+                    path: 'add',
+                    builder: (context, state) => AddSpendPage(
+                      categoryId: state.uri.queryParameters['categoryId'],
+                    ),
+                  ),
                   GoRoute(
                     path: 'categories',
                     builder: (context, state) => const CategoriesPage(),

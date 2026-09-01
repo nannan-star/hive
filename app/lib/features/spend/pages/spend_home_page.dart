@@ -2,13 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/providers.dart';
 import '../providers/spend_providers.dart';
+import '../services/template_service.dart';
 
-class SpendHomePage extends ConsumerWidget {
+class SpendHomePage extends ConsumerStatefulWidget {
   const SpendHomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SpendHomePage> createState() => _SpendHomePageState();
+}
+
+class _SpendHomePageState extends ConsumerState<SpendHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await TemplateService.ensureMonthTemplates(
+        ref.read(databaseProvider),
+        DateTime.now(),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final asyncCats = ref.watch(categoriesListProvider);
 
     return Scaffold(
@@ -43,7 +61,7 @@ class SpendHomePage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text('分类（种子数据）', style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text('分类', style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           asyncCats.when(
             data: (cats) {
@@ -54,9 +72,7 @@ class SpendHomePage extends ConsumerWidget {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(c.name),
-                      subtitle: Text(
-                        c.templateEnabled ? '模板开' : '仅手记',
-                      ),
+                      subtitle: Text(c.templateEnabled ? '模板开' : '仅手记'),
                       onTap: () =>
                           context.push('/spend/categories/${c.id}/edit'),
                     ),

@@ -15,3 +15,9 @@ final categoriesListProvider = StreamProvider<List<Category>>((ref) {
   final showDisabled = ref.watch(showDisabledCategoriesProvider);
   return showDisabled ? dao.watchAll() : dao.watchEnabled();
 });
+
+final pendingEntriesProvider =
+    StreamProvider.family<List<SpendEntry>, (int, int)>((ref, ym) {
+  final db = ref.watch(databaseProvider);
+  return db.spendEntriesDao.watchPendingForMonth(ym.$1, ym.$2);
+});
