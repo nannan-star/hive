@@ -1,0 +1,43 @@
+{
+  "terminalAllowlist": [
+    "git",
+    "flutter",
+    "dart",
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "pwd",
+    "which",
+    "echo",
+    "mkdir",
+    "cp",
+    "mv",
+    "find",
+    "rg",
+    "grep",
+    "xargs",
+    "wc",
+    "sort",
+    "uniq",
+    "sed",
+    "awk",
+    "python3",
+    "python",
+    "pod",
+    "xcodebuild",
+    "./gradlew",
+    "gradlew"
+  ],
+  "autoRun": {
+    "allow_instructions": [
+      "Ordinary work in this Flutter repo can auto-run: reading and editing project files, running tests, analyze, format, pub get/upgrade, build_runner, flutter build/run, and git status/diff/log/add/commit.",
+      "Sandbox-safe shell commands that inspect the workspace or use Dart/Flutter tooling can auto-run.",
+      "Commands that only need workspace file access and standard package-manager network such as pub.dev can auto-run."
+    ],
+    "block_instructions": [
+      "Commands that delete files, wipe git history, force-push, or modify git config/hooks should go through approval first.",
+      "Commands that change files outside this workspace, touch SSH keys, or need unrestricted system access should go through approval first."
+    ]
+  }
+}

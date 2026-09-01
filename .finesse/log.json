@@ -1,0 +1,21 @@
+[
+  {
+    "at": "2026-08-31T11:27:07Z",
+    "target": "prototypes/hive-v1/index.html",
+    "register": "h5",
+    "morph": "A-app-shell",
+    "axes": {
+      "A": "warm-stone+forest",
+      "B": "Literata/NotoSansSC",
+      "C": "phone-tab-shell",
+      "D": "CSS-press+fade",
+      "E": "paper-journal-grain"
+    },
+    "dials": {
+      "SOUL": 7,
+      "SPECTACLE": 2,
+      "DENSITY": 5
+    },
+    "note": "User chose warmer diary + paper grain over cool tool look"
+  }
+]
