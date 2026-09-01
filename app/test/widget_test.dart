@@ -1,13 +1,28 @@
+import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_app/app.dart';
+import 'package:hive_app/data/db/app_database.dart';
+import 'package:hive_app/data/providers.dart';
+import 'package:hive_app/data/seed.dart';
 
 void main() {
   testWidgets('HiveApp shows spend tab shell', (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: HiveApp()));
+    final db = AppDatabase(NativeDatabase.memory());
+    await ensureSeedCategories(db);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(db)],
+        child: const HiveApp(),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('消费'), findsWidgets);
     expect(find.text('梦想'), findsOneWidget);
+    expect(find.text('停车费'), findsOneWidget);
+
+    await db.close();
   });
 }

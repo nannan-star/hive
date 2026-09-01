@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/spend/pages/spend_home_page.dart';
+
 GoRouter createRouter() {
   return GoRouter(
     initialLocation: '/spend',
@@ -14,9 +16,7 @@ GoRouter createRouter() {
             routes: [
               GoRoute(
                 path: '/spend',
-                builder: (context, state) => const _PlaceholderPage(
-                  title: '消费',
-                ),
+                builder: (context, state) => const SpendHomePage(),
               ),
             ],
           ),
