@@ -7,3 +7,5 @@ final databaseProvider = Provider<AppDatabase>((ref) {
     'databaseProvider must be overridden in main with a real AppDatabase',
   );
 });
+
+final backupRestoreEpochProvider = StateProvider<int>((ref) => 0);

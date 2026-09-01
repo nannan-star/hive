@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/db/app_database.dart';
+import '../../../data/providers.dart';
 import '../../../shared/dates.dart';
 import '../../../shared/money.dart';
 import '../../../shared/theme/hive_colors.dart';
@@ -22,8 +23,10 @@ class _DreamDetailPageState extends ConsumerState<DreamDetailPage> {
   @override
   Widget build(BuildContext context) {
     final depositsAsync = ref.watch(dreamDepositsProvider(widget.jarId));
+    final epoch = ref.watch(backupRestoreEpochProvider);
 
     return FutureBuilder(
+      key: ValueKey('$epoch-${widget.jarId}'),
       future: () async {
         final jar = await ref.read(dreamDaoProvider).getJar(widget.jarId);
         final saved =
