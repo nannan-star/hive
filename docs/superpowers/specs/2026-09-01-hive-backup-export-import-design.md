@@ -38,7 +38,13 @@ Flutter iOS / Android 都要能分享和选文件。不改包名（Android `com.
 
 ## 2. 用户流程
 
-设置页已有两个入口，去掉「第一期占位」文案，接上真实逻辑。家人权限仍占位。
+设置页已有两个入口，接上真实逻辑，并改副标题（`SettingsPage` 总会渲染 subtitle，不能留空）：
+
+| 入口 | 新副标题 |
+|---|---|
+| 导出备份 | 存到文件或发给自己 |
+| 从备份恢复 | 将完全替换当前数据 |
+| 家人权限 | 后续版本 · 当前仅自己（不变） |
 
 ### 2.1 导出
 
@@ -100,7 +106,7 @@ UTF-8 JSON。顶层键：
 
 **dreamDeposits：** `id`, `jarId`, `amountCents`, `date`, `note`, `createdAt`
 
-行内未知键忽略。缺必填键或类型不对 → 整份备份无效。
+行内未知键忽略。可空列在自产 JSON 里必须出现，值为 `null`；导入时若省略可空键，按 `null` 接受。非空列缺键或类型不对 → 整份备份无效。
 
 ### 3.3 示例（节选）
 
@@ -147,7 +153,7 @@ UTF-8 JSON。顶层键：
 2. 插入顺序：`categories` → `dream_jars` → `spend_entries` → `dream_deposits`（先父后子）
 3. 用备份里的原 `id` 插入，不重新生成 UUID
 
-失败则整笔回滚。成功后 Drift `watch` 会把消费/梦想各页刷成新数据，不必重启 App，也不必手动 `invalidate` StreamProvider。
+失败则整笔回滚。成功后不必重启 App。Drift `watch` 的列表会自己刷新；消费首页 / 分类详情等用了 `FutureBuilder` 的统计**不会**自动变，恢复成功后要显式刷新（例如给设置页一个 `restoreEpoch` 或 `ref.invalidate` 相关 FutureProvider），不能只依赖「碰巧还 watch 了待确认流」。
 
 ### 5.2 与 seed 的关系
 
@@ -178,7 +184,7 @@ UTF-8 JSON。顶层键：
 - `BackupPayload parse(String json)` → 校验，失败抛错
 - `Future<void> restore(BackupPayload payload)` → 事务覆盖
 
-页面负责：临时文件、`Share.shareXFiles`、`FilePicker.platform.pickFiles`。
+页面负责：临时文件、`Share.shareXFiles`、`FilePicker.platform.pickFiles`。选文件后读 **`bytes`（或 `XFile`）**，不要只信 `path`：Android content URI 经常没有可用路径。
 
 不改 `tables.dart`、不改 DAO 对外 API、不加新路由。
 
