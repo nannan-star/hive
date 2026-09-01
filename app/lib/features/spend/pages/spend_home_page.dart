@@ -1,18 +1,15 @@
-import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../data/db/app_database.dart';
-import '../../../data/providers.dart';
+import '../providers/spend_providers.dart';
 
-/// Temporary seed verification UI (replaced in later tasks).
 class SpendHomePage extends ConsumerWidget {
   const SpendHomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
+    final asyncCats = ref.watch(categoriesListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -24,36 +21,52 @@ class SpendHomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: StreamBuilder<List<Category>>(
-        stream: (db.select(db.categories)
-              ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
-            .watch(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('错误: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final cats = snapshot.data!;
-          if (cats.isEmpty) {
-            return const Center(child: Text('暂无分类'));
-          }
-          return ListView.builder(
-            itemCount: cats.length,
-            itemBuilder: (context, i) {
-              final c = cats[i];
-              return ListTile(
-                title: Text(c.name),
-                subtitle: Text(
-                  c.templateEnabled
-                      ? '模板 · 默认 ${c.templateDefaultAmount ?? 0} 分'
-                      : '仅手记',
-                ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilledButton.tonal(
+                onPressed: () => context.push('/spend/pending'),
+                child: const Text('本月待确认'),
+              ),
+              FilledButton.tonal(
+                onPressed: () => context.push('/spend/add'),
+                child: const Text('记一笔'),
+              ),
+              FilledButton.tonal(
+                onPressed: () => context.push('/spend/categories'),
+                child: const Text('分类管理'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('分类（种子数据）', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          asyncCats.when(
+            data: (cats) {
+              if (cats.isEmpty) return const Text('暂无分类');
+              return Column(
+                children: [
+                  for (final c in cats)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(c.name),
+                      subtitle: Text(
+                        c.templateEnabled ? '模板开' : '仅手记',
+                      ),
+                      onTap: () =>
+                          context.push('/spend/categories/${c.id}/edit'),
+                    ),
+                ],
               );
             },
-          );
-        },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Text('错误: $e'),
+          ),
+        ],
       ),
     );
   }

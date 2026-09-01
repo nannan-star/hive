@@ -1,11 +1,15 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import '../daos/categories_dao.dart';
 import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Categories, SpendEntries, DreamJars, DreamDeposits])
+@DriftDatabase(
+  tables: [Categories, SpendEntries, DreamJars, DreamDeposits],
+  daos: [CategoriesDao],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
