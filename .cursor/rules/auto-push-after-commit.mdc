@@ -1,0 +1,13 @@
+---
+description: After any git commit in this repo, automatically push to origin
+alwaysApply: true
+---
+
+# Auto push after commit
+
+When the user asks you to create a git commit in this repository:
+
+1. After a successful `git commit`, immediately run `git push -u origin HEAD` (or `git push` if upstream already tracks).
+2. Do not ask for confirmation to push — the user has opted into auto-push for subsequent commits.
+3. If push fails (network/auth), report the error; do not retry destructively or force-push.
+4. Never `git push --force` to main/master unless the user explicitly requests it.
