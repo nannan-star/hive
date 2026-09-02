@@ -1,0 +1,41 @@
+---
+description: Hive feature iteration workflow by change size (spec/plan/direct)
+alwaysApply: true
+---
+
+# Hive 功能迭代流程
+
+按改动体量分流。新增/修改行为时勿跳过确认；小修可直接做。
+
+## 真相来源
+
+- 产品边界：`docs/hive-需求说明.md`（含「明确不做」）
+- 技术设计：`docs/superpowers/specs/`
+- 实现任务：`docs/superpowers/plans/`
+- UI 原型：`prototypes/`（有则先对齐）
+
+## 分流
+
+### 小改 / 修 bug（约半小时内）
+
+文案、样式、明显逻辑错误：直接改 → 相关 `flutter test` + 冒烟 → commit（自动 push）。不写新 spec/plan；若碰产品边界，在需求说明补一句。
+
+### 中等功能（单模块新能力）
+
+例：备份导出、分类规则、新页入口。
+
+1. 对齐：目标 / 不做清单 / 验收标准  
+2. 写 `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` → **用户确认**  
+3. 写 `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`（可勾选任务，偏 TDD）  
+4. 按 plan 实现 → `cd app && flutter test` → commit/push  
+5. 行为变更同步更新 `docs/hive-需求说明.md`
+
+### 大功能 / 跨模块 / 改库
+
+家人协作、云同步、schema、新主 Tab：先改需求说明并确认「明确不做」是否放开 → 再走中等流程；单独约定迁移/兼容（含备份 `schemaVersion`）；完整测试 + release APK 冒烟后再合入。
+
+## Agent 行为
+
+- 用户未说明档位时：先判断档位并简述将走哪条路径；中等及以上 **先 design，用户批准后再写 plan/写代码**。  
+- 工作目录：Flutter 命令在 `app/` 下执行。  
+- 发版：`flutter build apk --release`；APK 不入库。
