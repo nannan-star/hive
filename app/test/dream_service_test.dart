@@ -40,4 +40,28 @@ void main() {
     final spends = await db.select(db.spendEntries).get();
     expect(spends, isEmpty);
   });
+
+  test('fund deposit withdraw balance and reject overdraft', () async {
+    final id = await service.createFund(name: '备用金');
+    await service.deposit(jarId: id, amountCents: 10000, date: '2026-09-01');
+    await service.withdraw(jarId: id, amountCents: 3000, date: '2026-09-02');
+    expect(await service.balanceCents(id), 7000);
+
+    await expectLater(
+      service.withdraw(jarId: id, amountCents: 8000, date: '2026-09-03'),
+      throwsA(isA<StateError>()),
+    );
+    expect(await service.balanceCents(id), 7000);
+
+    final spends = await db.select(db.spendEntries).get();
+    expect(spends, isEmpty);
+  });
+
+  test('goal rejects withdraw', () async {
+    final id = await db.dreamDao.insertJar(name: '滑雪', targetCents: 100000);
+    await expectLater(
+      service.withdraw(jarId: id, amountCents: 100, date: '2026-09-01'),
+      throwsA(isA<StateError>()),
+    );
+  });
 }

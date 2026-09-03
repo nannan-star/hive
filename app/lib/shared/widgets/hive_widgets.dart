@@ -524,7 +524,7 @@ class HiveTabBar extends StatelessWidget {
             Expanded(
               child: _TabItem(
                 selected: index == 1,
-                label: '梦想',
+                label: '自由',
                 icon: const HiveJarIcon(),
                 onTap: () => onSelect(1),
               ),

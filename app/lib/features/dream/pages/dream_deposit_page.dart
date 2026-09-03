@@ -8,10 +8,17 @@ import '../../../shared/theme/hive_colors.dart';
 import '../../../shared/widgets/hive_widgets.dart';
 import '../providers/dream_providers.dart';
 
+enum DreamDepositMode { deposit, withdraw }
+
 class DreamDepositPage extends ConsumerStatefulWidget {
-  const DreamDepositPage({super.key, required this.jarId});
+  const DreamDepositPage({
+    super.key,
+    required this.jarId,
+    this.mode = DreamDepositMode.deposit,
+  });
 
   final String jarId;
+  final DreamDepositMode mode;
 
   @override
   ConsumerState<DreamDepositPage> createState() => _DreamDepositPageState();
@@ -23,6 +30,8 @@ class _DreamDepositPageState extends ConsumerState<DreamDepositPage> {
   final _noteCtrl = TextEditingController();
   DateTime _date = DateTime.now();
   String _jarName = '';
+  String _jarKind = 'goal';
+  bool _ready = false;
 
   @override
   void initState() {
@@ -33,7 +42,23 @@ class _DreamDepositPageState extends ConsumerState<DreamDepositPage> {
   Future<void> _loadJar() async {
     final jar = await ref.read(dreamDaoProvider).getJar(widget.jarId);
     if (!mounted) return;
-    setState(() => _jarName = jar?.name ?? '');
+    if (widget.mode == DreamDepositMode.withdraw && jar?.kind != 'fund') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('储蓄罐不支持取出')),
+      );
+      context.pop();
+      return;
+    }
+    setState(() {
+      _jarName = jar?.name ?? '';
+      _jarKind = jar?.kind ?? 'goal';
+      _ready = true;
+    });
+  }
+
+  String get _title {
+    if (widget.mode == DreamDepositMode.withdraw) return '取出账户';
+    return _jarKind == 'fund' ? '存入账户' : '存入储蓄罐';
   }
 
   @override
@@ -45,13 +70,37 @@ class _DreamDepositPageState extends ConsumerState<DreamDepositPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(dreamDaoProvider).insertDeposit(
+    final amountCents = yuanToCents(num.parse(_amountCtrl.text.trim()));
+    final date = formatDateYmd(_date);
+    final note =
+        _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim();
+    final service = ref.read(dreamServiceProvider);
+    try {
+      if (widget.mode == DreamDepositMode.withdraw) {
+        await service.withdraw(
           jarId: widget.jarId,
-          amountCents: yuanToCents(num.parse(_amountCtrl.text.trim())),
-          date: formatDateYmd(_date),
-          note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
+          amountCents: amountCents,
+          date: date,
+          note: note,
         );
-    if (mounted) context.pop();
+      } else {
+        await service.deposit(
+          jarId: widget.jarId,
+          amountCents: amountCents,
+          date: date,
+          note: note,
+        );
+      }
+      if (mounted) context.pop();
+    } on StateError catch (e) {
+      if (!mounted) return;
+      final message = e.message == 'insufficient balance'
+          ? '余额不足'
+          : e.message;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
   }
 
   Future<void> _pickDate() async {
@@ -66,19 +115,26 @@ class _DreamDepositPageState extends ConsumerState<DreamDepositPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        backgroundColor: HiveColors.page,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: HiveColors.page,
       body: SafeArea(
         child: Column(
           children: [
-            const HiveBackHeader(title: '存入梦想'),
+            HiveBackHeader(title: _title),
             Expanded(
               child: Form(
                 key: _formKey,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                   children: [
-                    const HiveFieldLabel('罐子'),
+                    HiveFieldLabel(_jarKind == 'fund' ? '账户' : '储蓄罐'),
                     _ReadBox(value: _jarName.isEmpty ? '…' : _jarName),
                     const SizedBox(height: 16),
                     const HiveFieldLabel('金额'),

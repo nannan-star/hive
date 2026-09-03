@@ -1383,6 +1383,16 @@ class $DreamJarsTable extends DreamJars
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('goal'),
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -1441,6 +1451,7 @@ class $DreamJarsTable extends DreamJars
     id,
     name,
     targetCents,
+    kind,
     status,
     description,
     familyId,
@@ -1482,6 +1493,12 @@ class $DreamJarsTable extends DreamJars
       );
     } else if (isInserting) {
       context.missing(_targetCentsMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -1541,6 +1558,10 @@ class $DreamJarsTable extends DreamJars
         DriftSqlType.int,
         data['${effectivePrefix}target_cents'],
       )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -1574,6 +1595,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
   final String id;
   final String name;
   final int targetCents;
+  final String kind;
   final String status;
   final String? description;
   final String? familyId;
@@ -1583,6 +1605,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
     required this.id,
     required this.name,
     required this.targetCents,
+    required this.kind,
     required this.status,
     this.description,
     this.familyId,
@@ -1595,6 +1618,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['target_cents'] = Variable<int>(targetCents);
+    map['kind'] = Variable<String>(kind);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
@@ -1614,6 +1638,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
       id: Value(id),
       name: Value(name),
       targetCents: Value(targetCents),
+      kind: Value(kind),
       status: Value(status),
       description: description == null && nullToAbsent
           ? const Value.absent()
@@ -1637,6 +1662,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       targetCents: serializer.fromJson<int>(json['targetCents']),
+      kind: serializer.fromJson<String>(json['kind']),
       status: serializer.fromJson<String>(json['status']),
       description: serializer.fromJson<String?>(json['description']),
       familyId: serializer.fromJson<String?>(json['familyId']),
@@ -1651,6 +1677,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'targetCents': serializer.toJson<int>(targetCents),
+      'kind': serializer.toJson<String>(kind),
       'status': serializer.toJson<String>(status),
       'description': serializer.toJson<String?>(description),
       'familyId': serializer.toJson<String?>(familyId),
@@ -1663,6 +1690,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
     String? id,
     String? name,
     int? targetCents,
+    String? kind,
     String? status,
     Value<String?> description = const Value.absent(),
     Value<String?> familyId = const Value.absent(),
@@ -1672,6 +1700,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
     id: id ?? this.id,
     name: name ?? this.name,
     targetCents: targetCents ?? this.targetCents,
+    kind: kind ?? this.kind,
     status: status ?? this.status,
     description: description.present ? description.value : this.description,
     familyId: familyId.present ? familyId.value : this.familyId,
@@ -1685,6 +1714,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
       targetCents: data.targetCents.present
           ? data.targetCents.value
           : this.targetCents,
+      kind: data.kind.present ? data.kind.value : this.kind,
       status: data.status.present ? data.status.value : this.status,
       description: data.description.present
           ? data.description.value
@@ -1701,6 +1731,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('targetCents: $targetCents, ')
+          ..write('kind: $kind, ')
           ..write('status: $status, ')
           ..write('description: $description, ')
           ..write('familyId: $familyId, ')
@@ -1715,6 +1746,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
     id,
     name,
     targetCents,
+    kind,
     status,
     description,
     familyId,
@@ -1728,6 +1760,7 @@ class DreamJar extends DataClass implements Insertable<DreamJar> {
           other.id == this.id &&
           other.name == this.name &&
           other.targetCents == this.targetCents &&
+          other.kind == this.kind &&
           other.status == this.status &&
           other.description == this.description &&
           other.familyId == this.familyId &&
@@ -1739,6 +1772,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
   final Value<String> id;
   final Value<String> name;
   final Value<int> targetCents;
+  final Value<String> kind;
   final Value<String> status;
   final Value<String?> description;
   final Value<String?> familyId;
@@ -1749,6 +1783,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.targetCents = const Value.absent(),
+    this.kind = const Value.absent(),
     this.status = const Value.absent(),
     this.description = const Value.absent(),
     this.familyId = const Value.absent(),
@@ -1760,6 +1795,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
     required String id,
     required String name,
     required int targetCents,
+    this.kind = const Value.absent(),
     required String status,
     this.description = const Value.absent(),
     this.familyId = const Value.absent(),
@@ -1775,6 +1811,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<int>? targetCents,
+    Expression<String>? kind,
     Expression<String>? status,
     Expression<String>? description,
     Expression<String>? familyId,
@@ -1786,6 +1823,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (targetCents != null) 'target_cents': targetCents,
+      if (kind != null) 'kind': kind,
       if (status != null) 'status': status,
       if (description != null) 'description': description,
       if (familyId != null) 'family_id': familyId,
@@ -1799,6 +1837,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
     Value<String>? id,
     Value<String>? name,
     Value<int>? targetCents,
+    Value<String>? kind,
     Value<String>? status,
     Value<String?>? description,
     Value<String?>? familyId,
@@ -1810,6 +1849,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
       id: id ?? this.id,
       name: name ?? this.name,
       targetCents: targetCents ?? this.targetCents,
+      kind: kind ?? this.kind,
       status: status ?? this.status,
       description: description ?? this.description,
       familyId: familyId ?? this.familyId,
@@ -1830,6 +1870,9 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
     }
     if (targetCents.present) {
       map['target_cents'] = Variable<int>(targetCents.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -1858,6 +1901,7 @@ class DreamJarsCompanion extends UpdateCompanion<DreamJar> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('targetCents: $targetCents, ')
+          ..write('kind: $kind, ')
           ..write('status: $status, ')
           ..write('description: $description, ')
           ..write('familyId: $familyId, ')
@@ -2940,6 +2984,7 @@ typedef $$DreamJarsTableCreateCompanionBuilder =
       required String id,
       required String name,
       required int targetCents,
+      Value<String> kind,
       required String status,
       Value<String?> description,
       Value<String?> familyId,
@@ -2952,6 +2997,7 @@ typedef $$DreamJarsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<int> targetCents,
+      Value<String> kind,
       Value<String> status,
       Value<String?> description,
       Value<String?> familyId,
@@ -2981,6 +3027,11 @@ class $$DreamJarsTableFilterComposer
 
   ColumnFilters<int> get targetCents => $composableBuilder(
     column: $table.targetCents,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3034,6 +3085,11 @@ class $$DreamJarsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -3079,6 +3135,9 @@ class $$DreamJarsTableAnnotationComposer
     column: $table.targetCents,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -3129,6 +3188,7 @@ class $$DreamJarsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> targetCents = const Value.absent(),
+                Value<String> kind = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> familyId = const Value.absent(),
@@ -3139,6 +3199,7 @@ class $$DreamJarsTableTableManager
                 id: id,
                 name: name,
                 targetCents: targetCents,
+                kind: kind,
                 status: status,
                 description: description,
                 familyId: familyId,
@@ -3151,6 +3212,7 @@ class $$DreamJarsTableTableManager
                 required String id,
                 required String name,
                 required int targetCents,
+                Value<String> kind = const Value.absent(),
                 required String status,
                 Value<String?> description = const Value.absent(),
                 Value<String?> familyId = const Value.absent(),
@@ -3161,6 +3223,7 @@ class $$DreamJarsTableTableManager
                 id: id,
                 name: name,
                 targetCents: targetCents,
+                kind: kind,
                 status: status,
                 description: description,
                 familyId: familyId,

@@ -88,7 +88,7 @@ void main() {
 
     expect(decoded['app'], 'hive');
     expect(decoded['formatVersion'], 1);
-    expect(decoded['schemaVersion'], 1);
+    expect(decoded['schemaVersion'], 2);
     expect(decoded['exportedAt'], isA<String>());
     expect(decoded['exportedAt'], endsWith('Z'));
     expect(decoded['categories'][0]['note'], isNull);
@@ -195,7 +195,7 @@ void main() {
     );
     expect(
       () => backup.parse(
-        '{"app":"hive","formatVersion":1,"schemaVersion":1,'
+        '{"app":"hive","formatVersion":1,"schemaVersion":2,'
         '"exportedAt":"2026-09-01T00:00:00.000Z","categories":[],'
         '"spendEntries":[{"id":"sp-1","categoryId":"missing","amountCents":1,'
         '"date":"2026-09-01","source":"manual","status":"confirmed",'
@@ -211,7 +211,7 @@ void main() {
     );
     expect(
       () => backup.parse(
-        '{"app":"hive","formatVersion":1,"schemaVersion":1,'
+        '{"app":"hive","formatVersion":1,"schemaVersion":2,'
         '"exportedAt":"2026-09-01T00:00:00.000Z","categories":['
         '{"id":"a","name":"x","sortOrder":1,"enabled":true,'
         '"templateEnabled":false,"templateDay":1,"createdAt":1},'

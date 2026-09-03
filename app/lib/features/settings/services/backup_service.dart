@@ -228,6 +228,7 @@ class BackupService {
           id: _reqString(r, 'id'),
           name: _reqString(r, 'name'),
           targetCents: _reqInt(r, 'targetCents'),
+          kind: _optString(r, 'kind') ?? 'goal',
           status: _reqString(r, 'status'),
           description: _optString(r, 'description'),
           familyId: _optString(r, 'familyId'),

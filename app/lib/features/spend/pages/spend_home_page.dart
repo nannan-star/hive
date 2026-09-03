@@ -131,7 +131,7 @@ class _SpendHomePageState extends ConsumerState<SpendHomePage> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              '${formatYoyHeadline(yearYoy)} · 水/电/燃气已分列 · 不含梦想存入',
+                              '${formatYoyHeadline(yearYoy)} · 水/电/燃气已分列 · 不含自由存入/取出',
                               style: const TextStyle(
                                 fontSize: 12,
                                 height: 1.45,

@@ -21,6 +21,20 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
     return q.watch();
   }
 
+  Stream<List<DreamJar>> watchJarsByKind({
+    required String kind,
+    required bool includeCompleted,
+  }) {
+    final q = select(dreamJars);
+    if (kind == 'goal' && !includeCompleted) {
+      q.where((t) => t.kind.equals(kind) & t.status.equals('active'));
+    } else {
+      q.where((t) => t.kind.equals(kind));
+    }
+    q.orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
+    return q.watch();
+  }
+
   Future<DreamJar?> getJar(String id) {
     return (select(dreamJars)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
@@ -36,6 +50,26 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
         id: id,
         name: name,
         targetCents: targetCents,
+        kind: const Value('goal'),
+        status: 'active',
+        description: Value(description),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    return id;
+  }
+
+  Future<String> insertFund({
+    required String name,
+    String? description,
+  }) async {
+    final id = _uuid.v4();
+    await into(dreamJars).insert(
+      DreamJarsCompanion.insert(
+        id: id,
+        name: name,
+        targetCents: 0,
+        kind: const Value('fund'),
         status: 'active',
         description: Value(description),
         createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -116,5 +150,16 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
 
   Future<void> deleteDeposit(String id) {
     return (delete(dreamDeposits)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> deleteJar(String id) async {
+    await (delete(dreamDeposits)..where((t) => t.jarId.equals(id))).go();
+    await (delete(dreamJars)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<void> renameFund({required String id, required String name}) {
+    return (update(dreamJars)..where((t) => t.id.equals(id))).write(
+      DreamJarsCompanion(name: Value(name)),
+    );
   }
 }
