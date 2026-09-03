@@ -36,6 +36,26 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
         id: id,
         name: name,
         targetCents: targetCents,
+        kind: 'goal',
+        status: 'active',
+        description: Value(description),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    return id;
+  }
+
+  Future<String> insertFund({
+    required String name,
+    String? description,
+  }) async {
+    final id = _uuid.v4();
+    await into(dreamJars).insert(
+      DreamJarsCompanion.insert(
+        id: id,
+        name: name,
+        targetCents: 0,
+        kind: 'fund',
         status: 'active',
         description: Value(description),
         createdAt: DateTime.now().millisecondsSinceEpoch,

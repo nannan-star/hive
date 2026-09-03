@@ -39,6 +39,7 @@ class DreamJars extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   IntColumn get targetCents => integer()();
+  TextColumn get kind => text().withDefault(const Constant('goal'))(); // goal | fund
   TextColumn get status => text()(); // active | completed
   TextColumn get description => text().nullable()();
   TextColumn get familyId => text().nullable()();
