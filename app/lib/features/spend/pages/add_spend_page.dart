@@ -76,41 +76,10 @@ class _AddSpendPageState extends ConsumerState<AddSpendPage> {
 
   Future<void> _pickCategory() async {
     if (_categories.isEmpty) return;
-    final picked = await showModalBottomSheet<String>(
+    final picked = await showCategoryPicker(
       context: context,
-      backgroundColor: HiveColors.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '选择分类',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: HiveColors.ink,
-                  ),
-                ),
-              ),
-            ),
-            for (final c in _categories)
-              ListTile(
-                title: Text(c.name),
-                trailing: c.id == _categoryId
-                    ? const Icon(Icons.check, color: HiveColors.accent)
-                    : null,
-                onTap: () => Navigator.pop(ctx, c.id),
-              ),
-          ],
-        ),
-      ),
+      categories: _categories,
+      selectedId: _categoryId,
     );
     if (picked != null) setState(() => _categoryId = picked);
   }
@@ -196,6 +165,81 @@ class _AddSpendPageState extends ConsumerState<AddSpendPage> {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<String?> showCategoryPicker({
+  required BuildContext context,
+  required List<Category> categories,
+  String? selectedId,
+}) {
+  return showModalBottomSheet<String>(
+    context: context,
+    backgroundColor: HiveColors.card,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+    builder: (ctx) => CategoryPickerSheet(
+      categories: categories,
+      selectedId: selectedId,
+    ),
+  );
+}
+
+class CategoryPickerSheet extends StatelessWidget {
+  const CategoryPickerSheet({
+    super.key,
+    required this.categories,
+    required this.selectedId,
+  });
+
+  final List<Category> categories;
+  final String? selectedId;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.7;
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '选择分类',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: HiveColors.ink,
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: categories.length,
+                itemBuilder: (context, i) {
+                  final c = categories[i];
+                  return ListTile(
+                    title: Text(c.name),
+                    trailing: c.id == selectedId
+                        ? const Icon(Icons.check, color: HiveColors.accent)
+                        : null,
+                    onTap: () => Navigator.pop(context, c.id),
+                  );
+                },
               ),
             ),
           ],
