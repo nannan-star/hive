@@ -137,4 +137,9 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
   Future<void> deleteDeposit(String id) {
     return (delete(dreamDeposits)..where((t) => t.id.equals(id))).go();
   }
+
+  Future<void> deleteJar(String id) async {
+    await (delete(dreamDeposits)..where((t) => t.jarId.equals(id))).go();
+    await (delete(dreamJars)..where((t) => t.id.equals(id))).go();
+  }
 }
