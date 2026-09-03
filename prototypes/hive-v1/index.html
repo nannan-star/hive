@@ -625,7 +625,7 @@
   <div class="stage">
     <div class="meta">
       <strong>Hive</strong> 可点击原型 · 更暖的日记本手感（纸纹 + 装订边）<br />
-      底部切换「消费 / 梦想」。流程不变，观感按 finesse 精修。<br />
+      底部切换「消费 / 自由」。自由内含梦想储蓄罐 + 可存可取账户。<br />
       文件：<code>prototypes/hive-v1/index.html</code>
     </div>
 
@@ -662,7 +662,7 @@
             <div class="summary">
               <div class="label">今年已确认合计</div>
               <div class="amount" id="yearTotal">¥48,620</div>
-              <div class="hint">较去年同类合计少 ¥3,140 · 水/电/燃气已分列 · 不含梦想存入</div>
+              <div class="hint">较去年同类合计少 ¥3,140 · 水/电/燃气已分列 · 不含自由存入/取出</div>
             </div>
             <div class="card list" id="categoryList"></div>
           </div>
@@ -855,24 +855,87 @@
           </div>
         </section>
 
-        <!-- 梦想列表 -->
+        <!-- 自由列表 -->
         <section class="screen" data-screen="dream-home">
           <div class="topbar">
-            <div class="brand">Hive<span>梦想 · 储蓄罐</span></div>
+            <div class="brand">Hive<span>自由 · 储蓄与账户</span></div>
             <button class="icon-btn" type="button" data-go="settings">⚙</button>
           </div>
           <div class="scroll">
-            <div class="note">与消费分账：存入不计入年对比。不支持取出；可标记完成。</div>
+            <div class="note" id="freeNote">与消费分账。储蓄罐只存不取，可标记完成。</div>
             <div class="chips">
-              <button class="chip on" type="button">进行中</button>
+              <button class="chip on" type="button" id="freeKindGoal">储蓄罐</button>
+              <button class="chip" type="button" id="freeKindFund">账户</button>
+            </div>
+            <div class="chips" id="goalExtraChips">
+              <button class="chip on" type="button" id="chipActiveGoals">进行中</button>
               <button class="chip" type="button" id="toggleDoneDreams">含已完成</button>
-              <button class="chip" type="button" data-toast="原型占位：新建罐子">＋ 新建罐子</button>
+              <button class="chip" type="button" data-go="free-new">＋ 新建</button>
+            </div>
+            <div class="chips" id="fundExtraChips" style="display:none">
+              <button class="chip" type="button" data-go="free-new">＋ 新建账户</button>
             </div>
             <div class="card list" id="dreamList"></div>
           </div>
         </section>
 
-        <!-- 梦想详情 -->
+        <!-- 新建：选类型 -->
+        <section class="screen" data-screen="free-new">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="dream-home">‹</button>
+            <div class="title">新建</div>
+          </div>
+          <div class="scroll">
+            <div class="note">先选类型。名称均可自由填写，无系统预设类别。</div>
+            <div class="card list">
+              <button class="row" type="button" data-go="goal-new">
+                <div class="name">梦想储蓄罐</div>
+                <div class="sub">有目标 · 只存不取 · 可标记完成</div>
+              </button>
+              <button class="row" type="button" data-go="fund-new">
+                <div class="name">账户</div>
+                <div class="sub">无目标 · 可存可取 · 无完成态</div>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 新建储蓄罐 -->
+        <section class="screen" data-screen="goal-new">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="free-new">‹</button>
+            <div class="title">新建储蓄罐</div>
+          </div>
+          <div class="scroll">
+            <div class="form">
+              <div class="field"><label>名称</label><input type="text" placeholder="例如：换车" value="北海道滑雪" /></div>
+              <div class="field"><label>目标金额</label><input type="number" placeholder="0.00" value="20000" /></div>
+              <div class="actions">
+                <button class="primary" type="button" data-toast="已创建储蓄罐（原型示意）" data-go="dream-home">保存</button>
+                <button class="ghost" type="button" data-go="dream-home">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 新建账户 -->
+        <section class="screen" data-screen="fund-new">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="free-new">‹</button>
+            <div class="title">新建账户</div>
+          </div>
+          <div class="scroll">
+            <div class="form">
+              <div class="field"><label>名称</label><input type="text" placeholder="例如：备用金、教育基金" value="备用金" /></div>
+              <div class="actions">
+                <button class="primary" type="button" id="btnCreateFund" data-go="dream-home">保存</button>
+                <button class="ghost" type="button" data-go="dream-home">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 储蓄罐详情 -->
         <section class="screen" data-screen="dream-detail">
           <div class="back-row">
             <button class="icon-btn" type="button" data-go="dream-home">‹</button>
@@ -882,14 +945,14 @@
             <div class="summary">
               <div class="label">已存 / 目标</div>
               <div class="amount" id="dreamAmount">¥12,800<span style="font-size:16px;color:var(--ink-soft)"> / 20,000</span></div>
-              <div class="progress" style="margin-top:12px;position:relative;z-index:1"><i style="width:64%"></i></div>
-              <div class="hint">还差 ¥7,200 · 进行中</div>
+              <div class="progress" style="margin-top:12px;position:relative;z-index:1" id="dreamProgressWrap"><i id="dreamProgressBar" style="width:64%"></i></div>
+              <div class="hint" id="dreamHint">还差 ¥7,200 · 进行中</div>
             </div>
             <div class="chips">
               <button class="chip on" type="button" data-go="dream-add">＋ 存一笔</button>
               <button class="chip" type="button" data-toast="已标记为完成" id="completeDream">标记已完成</button>
             </div>
-            <div class="card">
+            <div class="card" id="dreamLedger">
               <div class="card-hd"><span>存入记录</span><span>到天</span></div>
               <div class="row"><div class="name">¥2,000</div><div class="num" style="font-size:13px;color:var(--ink-soft)">08-20</div><div class="sub">月底结余丢进去</div></div>
               <div class="row"><div class="name">¥3,800</div><div class="num" style="font-size:13px;color:var(--ink-soft)">07-12</div><div class="sub">年中奖</div></div>
@@ -898,21 +961,83 @@
           </div>
         </section>
 
-        <!-- 存一笔梦想 -->
+        <!-- 账户详情 -->
+        <section class="screen" data-screen="fund-detail">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="dream-home">‹</button>
+            <div class="title" id="fundTitle">备用金</div>
+          </div>
+          <div class="scroll">
+            <div class="summary">
+              <div class="label">当前余额</div>
+              <div class="amount" id="fundAmount">¥8,500</div>
+              <div class="hint">无目标 · 可存可取 · 不计入消费</div>
+            </div>
+            <div class="chips">
+              <button class="chip on" type="button" data-go="fund-add">＋ 存一笔</button>
+              <button class="chip" type="button" data-go="fund-withdraw">− 取一笔</button>
+              <button class="chip" type="button" id="btnDeleteFund">删除</button>
+            </div>
+            <div class="card list" id="fundLedger"></div>
+          </div>
+        </section>
+
+        <!-- 存一笔储蓄罐 -->
         <section class="screen" data-screen="dream-add">
           <div class="back-row">
             <button class="icon-btn" type="button" data-go="dream-detail">‹</button>
-            <div class="title">存入梦想</div>
+            <div class="title">存入储蓄罐</div>
           </div>
           <div class="scroll">
             <div class="form">
-              <div class="field"><label>罐子</label><input type="text" value="北海道滑雪" readonly /></div>
+              <div class="field"><label>储蓄罐</label><input type="text" id="goalDepositName" value="北海道滑雪" readonly /></div>
               <div class="field"><label>金额</label><input type="number" placeholder="0.00" value="1000" /></div>
-              <div class="field"><label>日期</label><input type="date" value="2026-08-31" /></div>
-              <div class="field"><label>备注</label><textarea placeholder="可选">八月固定存</textarea></div>
+              <div class="field"><label>日期</label><input type="date" value="2026-09-03" /></div>
+              <div class="field"><label>备注</label><textarea placeholder="可选">九月固定存</textarea></div>
               <div class="actions">
-                <button class="primary" type="button" data-toast="已存入罐子" data-go="dream-detail">保存</button>
+                <button class="primary" type="button" data-toast="已存入储蓄罐" data-go="dream-detail">保存</button>
                 <button class="ghost" type="button" data-go="dream-detail">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 账户存一笔 -->
+        <section class="screen" data-screen="fund-add">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="fund-detail">‹</button>
+            <div class="title">存入账户</div>
+          </div>
+          <div class="scroll">
+            <div class="form">
+              <div class="field"><label>账户</label><input type="text" id="fundDepositName" value="备用金" readonly /></div>
+              <div class="field"><label>金额</label><input type="number" id="fundDepositAmt" placeholder="0.00" value="500" /></div>
+              <div class="field"><label>日期</label><input type="date" value="2026-09-03" /></div>
+              <div class="field"><label>备注</label><textarea placeholder="可选">月底结余</textarea></div>
+              <div class="actions">
+                <button class="primary" type="button" id="btnFundDeposit">保存</button>
+                <button class="ghost" type="button" data-go="fund-detail">取消</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 账户取一笔 -->
+        <section class="screen" data-screen="fund-withdraw">
+          <div class="back-row">
+            <button class="icon-btn" type="button" data-go="fund-detail">‹</button>
+            <div class="title">取出账户</div>
+          </div>
+          <div class="scroll">
+            <div class="note" id="fundWithdrawHint">不可超过当前余额。</div>
+            <div class="form">
+              <div class="field"><label>账户</label><input type="text" id="fundWithdrawName" value="备用金" readonly /></div>
+              <div class="field"><label>金额</label><input type="number" id="fundWithdrawAmt" placeholder="0.00" value="200" /></div>
+              <div class="field"><label>日期</label><input type="date" value="2026-09-03" /></div>
+              <div class="field"><label>备注</label><textarea placeholder="可选">应急取出</textarea></div>
+              <div class="actions">
+                <button class="primary" type="button" id="btnFundWithdraw">保存</button>
+                <button class="ghost" type="button" data-go="fund-detail">取消</button>
               </div>
             </div>
           </div>
@@ -938,7 +1063,7 @@
             <span class="ico">📒</span><span>消费</span>
           </button>
           <button class="nav-item" type="button" data-tab="dream" data-go="dream-home">
-            <span class="ico">🫙</span><span>梦想</span>
+            <span class="ico">🫙</span><span>自由</span>
           </button>
         </div>
         <div class="toast" id="toast"></div>
@@ -1013,17 +1138,64 @@
       ],
     };
 
-    const dreams = [
-      { id: "ski", name: "北海道滑雪", saved: 12800, goal: 20000, done: false },
-      { id: "car", name: "换车基金", saved: 42000, goal: 120000, done: false },
-      { id: "edu", name: "孩子教育", saved: 30000, goal: 30000, done: true },
+    const jars = [
+      {
+        id: "ski", kind: "goal", name: "北海道滑雪", target: 20000, done: false,
+        ledger: [
+          { date: "08-20", amount: 2000, note: "月底结余丢进去" },
+          { date: "07-12", amount: 3800, note: "年中奖" },
+          { date: "03-01", amount: 7000, note: "开罐" },
+        ],
+      },
+      {
+        id: "car", kind: "goal", name: "换车基金", target: 120000, done: false,
+        ledger: [
+          { date: "08-01", amount: 12000, note: "季度存" },
+          { date: "05-01", amount: 15000, note: "" },
+          { date: "01-15", amount: 15000, note: "开罐" },
+        ],
+      },
+      {
+        id: "edu-goal", kind: "goal", name: "孩子教育", target: 30000, done: true,
+        ledger: [
+          { date: "06-01", amount: 10000, note: "" },
+          { date: "03-01", amount: 20000, note: "开罐" },
+        ],
+      },
+      {
+        id: "emergency", kind: "fund", name: "备用金",
+        ledger: [
+          { date: "09-01", amount: -1500, note: "修车应急" },
+          { date: "08-28", amount: 3000, note: "月底结余" },
+          { date: "07-10", amount: 5000, note: "开户" },
+          { date: "06-20", amount: 2000, note: "加班费" },
+        ],
+      },
+      {
+        id: "edu-fund", kind: "fund", name: "教育基金",
+        ledger: [
+          { date: "08-15", amount: 2000, note: "月存" },
+          { date: "07-15", amount: 2000, note: "月存" },
+          { date: "06-01", amount: 8000, note: "开户" },
+        ],
+      },
     ];
 
     let year = 2026;
     let showDoneDreams = false;
+    let freeKind = "goal"; // goal | fund
+    let currentJarId = "ski";
     let showDisabledCats = false;
     let currentCat = "parking";
     let editingCatId = null;
+
+    function jarBalance(j) {
+      return j.ledger.reduce((s, x) => s + x.amount, 0);
+    }
+
+    function currentJar() {
+      return jars.find((x) => x.id === currentJarId) || jars[0];
+    }
 
     const screens = [...document.querySelectorAll(".screen")];
     const toastEl = document.getElementById("toast");
@@ -1031,16 +1203,22 @@
     function go(name) {
       screens.forEach((s) => s.classList.toggle("active", s.dataset.screen === name));
       const tabbar = document.getElementById("tabbar");
-      const hideTab = ["spend-add", "dream-add", "settings", "categories", "cat-edit", "pending", "cat-detail", "dream-detail"].includes(name);
+      const hideTab = [
+        "spend-add", "dream-add", "fund-add", "fund-withdraw", "settings", "categories",
+        "cat-edit", "pending", "cat-detail", "dream-detail", "fund-detail",
+        "free-new", "goal-new", "fund-new",
+      ].includes(name);
       tabbar.style.display = hideTab ? "none" : "grid";
       if (name === "spend-home" || name === "dream-home") {
         document.querySelectorAll(".nav-item").forEach((n) => {
-          n.classList.toggle("active", n.dataset.tab === (name.startsWith("dream") ? "dream" : "spend"));
+          n.classList.toggle("active", n.dataset.tab === (name.startsWith("dream") || name.startsWith("free") || name.startsWith("fund") || name.startsWith("goal") ? "dream" : "spend"));
         });
       }
       if (name === "cat-detail") renderCatDetail();
-      if (name === "dream-home") renderDreams();
+      if (name === "dream-home") renderFreeList();
       if (name === "categories") renderManageCats();
+      if (name === "fund-detail") renderFundDetail();
+      if (name === "dream-detail") renderGoalDetail();
     }
 
     function toast(msg) {
@@ -1187,28 +1365,104 @@
       }).join("");
     }
 
-    function renderDreams() {
+    function renderFreeList() {
       const list = document.getElementById("dreamList");
-      const items = dreams.filter((d) => showDoneDreams || !d.done);
-      list.innerHTML = items.map((d) => {
-        const pct = Math.min(100, Math.round((d.saved / d.goal) * 100));
-        return `<button class="row" type="button" data-dream="${d.id}">
-          <div class="name">${d.name} ${d.done ? '<span class="badge done">已完成</span>' : ""}</div>
-          <div class="num">${fmt(d.saved)}</div>
-          <div class="sub">目标 ${fmt(d.goal)} · ${pct}%
-            <div class="progress"><i style="width:${pct}%"></i></div>
-          </div>
-        </button>`;
-      }).join("");
-      list.querySelectorAll("[data-dream]").forEach((btn) => {
+      const note = document.getElementById("freeNote");
+      const goalChips = document.getElementById("goalExtraChips");
+      const fundChips = document.getElementById("fundExtraChips");
+      document.getElementById("freeKindGoal").classList.toggle("on", freeKind === "goal");
+      document.getElementById("freeKindFund").classList.toggle("on", freeKind === "fund");
+      goalChips.style.display = freeKind === "goal" ? "flex" : "none";
+      fundChips.style.display = freeKind === "fund" ? "flex" : "none";
+      if (freeKind === "goal") {
+        note.textContent = "与消费分账。储蓄罐只存不取，可标记完成。";
+        let items = jars.filter((d) => d.kind === "goal");
+        if (!showDoneDreams) items = items.filter((d) => !d.done);
+        list.innerHTML = items.length ? items.map((d) => {
+          const saved = jarBalance(d);
+          const pct = Math.min(100, Math.round((saved / d.target) * 100));
+          return `<button class="row" type="button" data-jar="${d.id}">
+            <div class="name">${d.name} ${d.done ? '<span class="badge done">已完成</span>' : ""}</div>
+            <div class="num">${fmt(saved)}</div>
+            <div class="sub">目标 ${fmt(d.target)} · ${pct}%
+              <div class="progress"><i style="width:${pct}%"></i></div>
+            </div>
+          </button>`;
+        }).join("") : `<div class="row dim"><div class="sub">暂无储蓄罐</div></div>`;
+      } else {
+        note.textContent = "与消费分账。账户无目标，可存可取；取出不可超余额。";
+        const items = jars.filter((d) => d.kind === "fund");
+        list.innerHTML = items.length ? items.map((d) => {
+          const bal = jarBalance(d);
+          return `<button class="row" type="button" data-jar="${d.id}">
+            <div class="name">${d.name}</div>
+            <div class="num">${fmt(bal)}</div>
+            <div class="sub">账户 · 无目标</div>
+          </button>`;
+        }).join("") : `<div class="row dim"><div class="sub">暂无账户</div></div>`;
+      }
+      list.querySelectorAll("[data-jar]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const d = dreams.find((x) => x.id === btn.dataset.dream);
-          document.getElementById("dreamTitle").textContent = d.name;
-          document.getElementById("dreamAmount").innerHTML =
-            `${fmt(d.saved)}<span style="font-size:16px;color:var(--ink-soft)"> / ${d.goal.toLocaleString("zh-CN")}</span>`;
-          go("dream-detail");
+          currentJarId = btn.dataset.jar;
+          const d = currentJar();
+          if (d.kind === "goal") go("dream-detail");
+          else go("fund-detail");
         });
       });
+    }
+
+    function renderGoalDetail() {
+      const d = currentJar();
+      if (d.kind !== "goal") return;
+      const saved = jarBalance(d);
+      const pct = Math.min(100, Math.round((saved / d.target) * 100));
+      const gap = Math.max(0, d.target - saved);
+      document.getElementById("dreamTitle").textContent = d.name;
+      document.getElementById("dreamAmount").innerHTML =
+        `${fmt(saved)}<span style="font-size:16px;color:var(--ink-soft)"> / ${d.target.toLocaleString("zh-CN")}</span>`;
+      document.getElementById("dreamProgressBar").style.width = pct + "%";
+      document.getElementById("dreamHint").textContent = d.done
+        ? "已完成"
+        : `还差 ${fmt(gap)} · 进行中`;
+      document.getElementById("goalDepositName").value = d.name;
+      const ledger = document.getElementById("dreamLedger");
+      ledger.innerHTML = `<div class="card-hd"><span>存入记录</span><span>到天</span></div>` +
+        d.ledger.map((i) => `<div class="row">
+          <div class="name">${fmt(i.amount)}</div>
+          <div class="num" style="font-size:13px;color:var(--ink-soft)">${i.date}</div>
+          <div class="sub">${i.note || ""}</div>
+        </div>`).join("");
+    }
+
+    function renderFundDetail() {
+      const d = currentJar();
+      if (d.kind !== "fund") return;
+      const bal = jarBalance(d);
+      document.getElementById("fundTitle").textContent = d.name;
+      document.getElementById("fundAmount").textContent = fmt(bal);
+      document.getElementById("fundDepositName").value = d.name;
+      document.getElementById("fundWithdrawName").value = d.name;
+      document.getElementById("fundWithdrawHint").textContent =
+        `当前余额 ${fmt(bal)} · 取出不可超过余额 · 不计入消费`;
+      const ledger = document.getElementById("fundLedger");
+      ledger.innerHTML = `<div class="card-hd"><span>流水</span><span>存 / 取</span></div>` +
+        d.ledger.map((i) => {
+          const tag = i.amount >= 0 ? "存入" : "取出";
+          const sign = i.amount >= 0 ? "+" : "−";
+          return `<div class="row">
+            <div class="name">${sign}${fmt(i.amount)} <span class="badge">${tag}</span></div>
+            <div class="num" style="font-size:13px;color:var(--ink-soft)">${i.date}</div>
+            <div class="sub">${i.note || ""}</div>
+          </div>`;
+        }).join("");
+    }
+
+    function openFundForms() {
+      const d = currentJar();
+      document.getElementById("fundDepositName").value = d.name;
+      document.getElementById("fundWithdrawName").value = d.name;
+      document.getElementById("fundWithdrawHint").textContent =
+        `当前余额 ${fmt(jarBalance(d))} · 取出不可超过余额`;
     }
 
     document.querySelectorAll("[data-go]").forEach((el) => {
@@ -1235,8 +1489,56 @@
     document.getElementById("toggleDoneDreams").onclick = (e) => {
       showDoneDreams = !showDoneDreams;
       e.currentTarget.classList.toggle("on", showDoneDreams);
-      renderDreams();
+      document.getElementById("chipActiveGoals").classList.toggle("on", !showDoneDreams);
+      renderFreeList();
     };
+    document.getElementById("chipActiveGoals").onclick = (e) => {
+      showDoneDreams = false;
+      e.currentTarget.classList.add("on");
+      document.getElementById("toggleDoneDreams").classList.remove("on");
+      renderFreeList();
+    };
+    document.getElementById("freeKindGoal").onclick = () => {
+      freeKind = "goal";
+      renderFreeList();
+    };
+    document.getElementById("freeKindFund").onclick = () => {
+      freeKind = "fund";
+      renderFreeList();
+    };
+    document.getElementById("btnCreateFund").onclick = () => {
+      freeKind = "fund";
+      toast("已创建账户（原型示意）");
+    };
+    document.getElementById("btnFundDeposit").onclick = () => {
+      const d = currentJar();
+      const amt = Number(document.getElementById("fundDepositAmt").value) || 0;
+      if (amt <= 0) { toast("请输入金额"); return; }
+      d.ledger.unshift({ date: "09-03", amount: amt, note: "存入" });
+      toast("已存入账户");
+      go("fund-detail");
+    };
+    document.getElementById("btnFundWithdraw").onclick = () => {
+      const d = currentJar();
+      const amt = Number(document.getElementById("fundWithdrawAmt").value) || 0;
+      const bal = jarBalance(d);
+      if (amt <= 0) { toast("请输入金额"); return; }
+      if (amt > bal) { toast(`余额不足（当前 ${fmt(bal)}）`); return; }
+      d.ledger.unshift({ date: "09-03", amount: -amt, note: "取出" });
+      toast("已取出");
+      go("fund-detail");
+    };
+    document.getElementById("btnDeleteFund").onclick = () => {
+      const d = currentJar();
+      const bal = jarBalance(d);
+      if (bal !== 0) toast(`余额 ${fmt(bal)}，删除需二次确认（原型示意）`);
+      else toast("已删除账户（原型示意）");
+    };
+
+    // 进入存取页时刷新账户名
+    document.querySelectorAll('[data-go="fund-add"], [data-go="fund-withdraw"]').forEach((el) => {
+      el.addEventListener("click", () => openFundForms());
+    });
 
     document.getElementById("catFilterActive").onclick = (e) => {
       showDisabledCats = false;
@@ -1283,7 +1585,7 @@
     };
 
     renderCategories();
-    renderDreams();
+    renderFreeList();
     renderManageCats();
   </script>
 </body>
