@@ -30,6 +30,7 @@ class _CategoryEditPageState extends ConsumerState<CategoryEditPage> {
   bool _enabled = true;
   bool _templateEnabled = false;
   bool _loading = true;
+  bool _busy = false;
   Category? _existing;
 
   @override
@@ -112,6 +113,62 @@ class _CategoryEditPageState extends ConsumerState<CategoryEditPage> {
   Future<void> _disable() async {
     await ref.read(categoriesDaoProvider).setEnabled(widget.categoryId!, false);
     if (mounted) context.pop();
+  }
+
+  Future<void> _delete() async {
+    if (_busy || !widget.isEditing) return;
+    final id = widget.categoryId!;
+    final dao = ref.read(categoriesDaoProvider);
+    final name = _existing?.name ?? _nameCtrl.text.trim();
+    final n = await dao.countEntries(id);
+    if (!mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('删除分类'),
+        content: Text(
+          '将删除「$name」及其下全部消费记录（共 $n 笔），且不可恢复',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              '删除',
+              style: TextStyle(color: HiveColors.danger),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      final still = await dao.getById(id);
+      if (still == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('分类已不存在')),
+          );
+          context.pop();
+        }
+        return;
+      }
+      await dao.deleteCategoryCascade(id);
+      if (mounted) context.pop();
+    } catch (_) {
+      if (mounted) {
+        setState(() => _busy = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('删除失败，请重试')),
+        );
+      }
+    }
   }
 
   InputDecoration _innerDeco() {
@@ -269,6 +326,12 @@ class _CategoryEditPageState extends ConsumerState<CategoryEditPage> {
                         label: '停用此分类',
                         danger: true,
                         onPressed: _disable,
+                      ),
+                    if (widget.isEditing)
+                      HiveTextAction(
+                        label: '删除此分类',
+                        danger: true,
+                        onPressed: _busy ? null : _delete,
                       ),
                   ],
                 ),
