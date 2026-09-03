@@ -93,7 +93,17 @@ GoRouter createRouter() {
                 routes: [
                   GoRoute(
                     path: 'new',
-                    builder: (context, state) => const DreamNewPage(),
+                    builder: (context, state) => const DreamTypePickPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'goal',
+                        builder: (context, state) => const DreamGoalNewPage(),
+                      ),
+                      GoRoute(
+                        path: 'fund',
+                        builder: (context, state) => const DreamFundNewPage(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: ':id',
