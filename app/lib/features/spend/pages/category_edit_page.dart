@@ -117,38 +117,41 @@ class _CategoryEditPageState extends ConsumerState<CategoryEditPage> {
 
   Future<void> _delete() async {
     if (_busy || !widget.isEditing) return;
+    setState(() => _busy = true);
     final id = widget.categoryId!;
     final dao = ref.read(categoriesDaoProvider);
     final name = _existing?.name ?? _nameCtrl.text.trim();
-    final n = await dao.countEntries(id);
-    if (!mounted) return;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('删除分类'),
-        content: Text(
-          '将删除「$name」及其下全部消费记录（共 $n 笔），且不可恢复',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              '删除',
-              style: TextStyle(color: HiveColors.danger),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _busy = true);
     try {
+      final n = await dao.countEntries(id);
+      if (!mounted) return;
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('删除分类'),
+          content: Text(
+            '将删除「$name」及其下全部消费记录（共 $n 笔），且不可恢复',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text(
+                '删除',
+                style: TextStyle(color: HiveColors.danger),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+
       final still = await dao.getById(id);
       if (still == null) {
         if (mounted) {
