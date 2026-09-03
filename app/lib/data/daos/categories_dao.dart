@@ -90,14 +90,21 @@ class CategoriesDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  /// Returns true if deleted; false if spend entries exist.
-  Future<bool> deleteIfNoEntries(String id) async {
-    final count = await (select(spendEntries)
-          ..where((t) => t.categoryId.equals(id)))
-        .get()
-        .then((rows) => rows.length);
-    if (count > 0) return false;
-    await (delete(categories)..where((t) => t.id.equals(id))).go();
-    return true;
+  Future<int> countEntries(String categoryId) async {
+    final count = countAll();
+    final query = selectOnly(spendEntries)
+      ..addColumns([count])
+      ..where(spendEntries.categoryId.equals(categoryId));
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
+  }
+
+  Future<void> deleteCategoryCascade(String categoryId) {
+    return transaction(() async {
+      await (delete(spendEntries)
+            ..where((t) => t.categoryId.equals(categoryId)))
+          .go();
+      await (delete(categories)..where((t) => t.id.equals(categoryId))).go();
+    });
   }
 }
