@@ -63,4 +63,10 @@ class DreamService {
     if (bal != 0 && !confirmNonZero) throw StateError('balance not zero');
     await db.dreamDao.deleteJar(jarId);
   }
+
+  Future<void> renameFund({required String id, required String name}) async {
+    final jar = await db.dreamDao.getJar(id);
+    if (jar == null || jar.kind != 'fund') throw StateError('not a fund');
+    await db.dreamDao.renameFund(id: id, name: name);
+  }
 }

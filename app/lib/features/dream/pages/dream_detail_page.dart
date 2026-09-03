@@ -261,9 +261,18 @@ class _DreamDetailPageState extends ConsumerState<DreamDetailPage> {
       await ref.read(dreamDaoProvider).deleteDeposit(row.id);
       if (mounted) setState(() {});
     } else if (action == 'save') {
+      final cents = yuanToCents(num.parse(amountCtrl.text.trim()));
+      if (cents <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('储蓄罐存入金额须大于 0')),
+          );
+        }
+        return;
+      }
       await ref.read(dreamDaoProvider).updateDeposit(
             id: row.id,
-            amountCents: yuanToCents(num.parse(amountCtrl.text.trim())),
+            amountCents: cents,
             date: formatDateYmd(date),
             note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
           );

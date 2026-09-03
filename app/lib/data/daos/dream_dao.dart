@@ -156,4 +156,10 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
     await (delete(dreamDeposits)..where((t) => t.jarId.equals(id))).go();
     await (delete(dreamJars)..where((t) => t.id.equals(id))).go();
   }
+
+  Future<void> renameFund({required String id, required String name}) {
+    return (update(dreamJars)..where((t) => t.id.equals(id))).write(
+      DreamJarsCompanion(name: Value(name)),
+    );
+  }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/dream/pages/dream_deposit_page.dart';
-import 'features/dream/pages/dream_detail_page.dart';
+import 'features/dream/pages/fund_detail_page.dart';
 import 'features/dream/pages/dream_home_page.dart';
 import 'features/dream/pages/dream_new_page.dart';
 import 'features/settings/pages/settings_page.dart';
@@ -107,7 +107,7 @@ GoRouter createRouter() {
                   ),
                   GoRoute(
                     path: ':id',
-                    builder: (context, state) => DreamDetailPage(
+                    builder: (context, state) => DreamJarDetailPage(
                       jarId: state.pathParameters['id']!,
                     ),
                     routes: [
@@ -115,6 +115,14 @@ GoRouter createRouter() {
                         path: 'deposit',
                         builder: (context, state) => DreamDepositPage(
                           jarId: state.pathParameters['id']!,
+                          mode: DreamDepositMode.deposit,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'withdraw',
+                        builder: (context, state) => DreamDepositPage(
+                          jarId: state.pathParameters['id']!,
+                          mode: DreamDepositMode.withdraw,
                         ),
                       ),
                     ],
