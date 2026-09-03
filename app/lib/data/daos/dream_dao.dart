@@ -21,6 +21,20 @@ class DreamDao extends DatabaseAccessor<AppDatabase> with _$DreamDaoMixin {
     return q.watch();
   }
 
+  Stream<List<DreamJar>> watchJarsByKind({
+    required String kind,
+    required bool includeCompleted,
+  }) {
+    final q = select(dreamJars);
+    if (kind == 'goal' && !includeCompleted) {
+      q.where((t) => t.kind.equals(kind) & t.status.equals('active'));
+    } else {
+      q.where((t) => t.kind.equals(kind));
+    }
+    q.orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
+    return q.watch();
+  }
+
   Future<DreamJar?> getJar(String id) {
     return (select(dreamJars)..where((t) => t.id.equals(id))).getSingleOrNull();
   }

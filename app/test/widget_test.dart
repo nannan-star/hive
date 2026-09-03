@@ -21,7 +21,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('消费'), findsWidgets);
-    expect(find.text('梦想'), findsOneWidget);
+    expect(find.text('自由'), findsOneWidget);
 
     await db.close();
   });
